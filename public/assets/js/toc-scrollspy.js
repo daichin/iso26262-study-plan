@@ -20,6 +20,13 @@
     });
     if (!('IntersectionObserver' in window) || links.length === 0) return;
 
+    // 上緣要正好扣掉 sticky 頁首，否則被頁首蓋住的段落還會被算成「目前這段」。
+    // rootMargin 不吃 calc()，所以要自己算出 px。
+    // 直接量元素，不要 parseFloat(--header-h)：那個變數在 nav.js 覆寫前是 rem
+    // （'3.5rem' 會被 parseFloat 讀成 3.5），拿到的會是無聲的錯誤值。
+    const hdr = document.querySelector('.site-header');
+    const headerH = hdr ? Math.round(hdr.getBoundingClientRect().height) : 56;
+
     const obs = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (e) {
@@ -30,7 +37,7 @@
           }
         });
       },
-      { rootMargin: '-10% 0px -75% 0px', threshold: 0 }
+      { rootMargin: '-' + (headerH + 8) + 'px 0px -70% 0px', threshold: 0 }
     );
     Object.keys(map).forEach(function (id) { obs.observe(document.getElementById(id)); });
   }
