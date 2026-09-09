@@ -1,0 +1,68 @@
+// 八個學習圈層的中繼資料，nav.js / index.html / admin 團隊進度頁共用同一份，
+// 之後要加新的一圈，只要在這裡加一筆並新增對應的 circle-0X-*.html + circle-0X.quiz.js。
+window.ISO26262_CIRCLES = [
+  {
+    id: 'circle-00-vocabulary-guideline',
+    file: 'circle-00-vocabulary-guideline.html',
+    tag: '第 0 圈・地圖',
+    title: '詞彙與導讀',
+    subtitle: 'Part 1 Vocabulary ・ Part 10 Guideline',
+    summary: '建立整份標準的地圖與共同語言，之後每一圈都會用到這裡的名詞。',
+  },
+  {
+    id: 'circle-01-software-development-part6',
+    file: 'circle-01-software-development-part6.html',
+    tag: '第 1 圈・核心',
+    title: '軟體層開發',
+    subtitle: 'Part 6 Product development at the software level',
+    summary: '你的工作本體：軟體安全需求、架構設計、單元驗證、整合測試。',
+  },
+  {
+    id: 'circle-02-supporting-processes-part8',
+    file: 'circle-02-supporting-processes-part8.html',
+    tag: '第 2 圈・支援流程',
+    title: '支援流程',
+    subtitle: 'Part 8 Supporting processes',
+    summary: '變更管理、工具鑑定、軟體元件重用——每天都會碰到的流程規範。',
+  },
+  {
+    id: 'circle-03-safety-analyses-part9',
+    file: 'circle-03-safety-analyses-part9.html',
+    tag: '第 3 圈・安全分析',
+    title: 'ASIL 導向安全分析',
+    subtitle: 'Part 9 ASIL-oriented and safety-oriented analyses',
+    summary: 'ASIL decomposition、freedom from interference、相依失效分析。',
+  },
+  {
+    id: 'circle-04-system-level-part4',
+    file: 'circle-04-system-level-part4.html',
+    tag: '第 4 圈・系統層',
+    title: '系統層開發',
+    subtitle: 'Part 4 Product development at the system level',
+    summary: '理解軟體需求從哪裡來：Safety Goal 到 Software Safety Requirement 的鏈。',
+  },
+  {
+    id: 'circle-05-hardware-level-part5',
+    file: 'circle-05-hardware-level-part5.html',
+    tag: '第 5 圈・硬體層',
+    title: '硬體層基礎',
+    subtitle: 'Part 5 Product development at the hardware level',
+    summary: '軟體常要實作的硬體診斷機制：看門狗、CRC、lockstep 比對。',
+  },
+  {
+    id: 'circle-06-concept-management-part2-3',
+    file: 'circle-06-concept-management-part2-3.html',
+    tag: '第 6 圈・概念與管理',
+    title: '概念階段與管理',
+    subtitle: 'Part 3 Concept phase ・ Part 2 Management',
+    summary: 'HARA、ASIL 判定邏輯、safety case 與功能安全稽核。',
+  },
+  {
+    id: 'circle-07-related-standards',
+    file: 'circle-07-related-standards.html',
+    tag: '第 7 圈・鄰近標準',
+    title: '鄰近標準',
+    subtitle: 'MISRA ・ ASPICE ・ SOTIF ・ ISO/SAE 21434 ・ IEC 61508 ・ AUTOSAR',
+    summary: '會跟你工作交疊的標準地圖，理解彼此的分工與關係。',
+  },
+];

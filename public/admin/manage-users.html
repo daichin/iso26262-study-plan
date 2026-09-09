@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>成員管理 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body>
+<header id="app-header" data-current="admin-manage-users"></header>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">管理者功能</p>
+    <h1>成員管理</h1>
+    <p class="standfirst">幫團隊成員建立帳號。新成員用你設定的臨時密碼登入後，會被強制要求自己改一組新密碼。</p>
+  </div>
+</header>
+
+<div class="shell">
+  <section id="add-user">
+    <h2 class="step">新增成員</h2>
+    <div class="form-field">
+      <label for="name">姓名</label>
+      <input id="name" type="text">
+    </div>
+    <div class="form-field">
+      <label for="email">Email</label>
+      <input id="email" type="email">
+    </div>
+    <div class="form-field">
+      <label for="initialPassword">臨時密碼（至少 8 碼）</label>
+      <input id="initialPassword" type="text">
+    </div>
+    <div class="form-field">
+      <label for="role">角色</label>
+      <select id="role">
+        <option value="member">member（一般成員）</option>
+        <option value="admin">admin（管理者）</option>
+      </select>
+    </div>
+    <div class="form-error" id="addUserError"></div>
+    <button class="btn primary" id="addUserBtn" type="button">建立帳號</button>
+  </section>
+
+  <section id="user-list">
+    <h2 class="step">現有成員</h2>
+    <div class="table-wrap" id="userTable"></div>
+  </section>
+</div>
+
+<footer class="site-footer">ISO 26262 學習網站 v1.0 ・ 管理者功能</footer>
+
+<script src="/assets/data/circles.js"></script>
+<script src="/assets/js/theme-toggle.js"></script>
+<script src="/assets/js/api-client.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script>
+(function () {
+  async function loadUsers() {
+    const users = await window.ISO26262Api.get('/api/admin/users');
+    const container = document.getElementById('userTable');
+    let html = '<table><thead><tr><th>姓名</th><th>Email</th><th>角色</th><th>狀態</th><th>建立時間</th></tr></thead><tbody>';
+    users.forEach(function (u) {
+      html += '<tr><td>' + u.name + '</td><td>' + u.email + '</td><td><code>' + u.role + '</code></td>' +
+        '<td>' + (u.must_change_password ? '尚未設定自己的密碼' : '已啟用') + '</td>' +
+        '<td class="src">' + new Date(u.created_at).toLocaleDateString('zh-TW') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  document.getElementById('addUserBtn').addEventListener('click', async function () {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const initialPassword = document.getElementById('initialPassword').value;
+    const role = document.getElementById('role').value;
+    const errorEl = document.getElementById('addUserError');
+    errorEl.textContent = '';
+
+    if (!name || !email || !initialPassword) {
+      errorEl.textContent = '請填寫姓名、Email 與臨時密碼。';
+      return;
+    }
+
+    try {
+      await window.ISO26262Api.post('/api/admin/users', { name: name, email: email, initialPassword: initialPassword, role: role });
+      document.getElementById('name').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('initialPassword').value = '';
+      loadUsers();
+    } catch (e) {
+      errorEl.textContent = e.data && e.data.error === 'email_taken' ? '這個 Email 已經有帳號了。' : '建立失敗，請確認欄位是否正確。';
+    }
+  });
+
+  loadUsers();
+})();
+</script>
+</body>
+</html>

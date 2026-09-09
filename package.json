@@ -1,0 +1,21 @@
+{
+  "name": "iso26262-study-plan",
+  "version": "1.0.0",
+  "description": "ISO 26262 學習規劃網站 — 多使用者測驗與進度追蹤",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "migrate": "node server/db/migrate.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-pg-simple": "^9.0.1",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "pg": "^8.11.5"
+  }
+}

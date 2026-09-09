@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>軟體層開發 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body>
+<header id="app-header" data-current="circle-01-software-development-part6"></header>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">第 1 圈・核心</p>
+    <h1>軟體層開發</h1>
+    <p class="standfirst">Part 6 Product development at the software level — 你的工作本體：軟體安全需求、架構設計、單元驗證、整合測試。</p>
+  </div>
+</header>
+
+<div class="shell shell-with-toc">
+  <nav class="index-toc" id="index" aria-label="目錄">
+    <h2>目錄</h2>
+    <button class="toc-toggle" id="tocToggle" aria-expanded="false">☰ 目錄</button>
+    <ol id="tocList">
+      <li><a href="#overview"><span class="n">－</span><span>總覽</span></a></li>
+      <li><a href="#requirements"><span class="n">1</span><span>軟體安全需求</span></a></li>
+      <li><a href="#architecture"><span class="n">2</span><span>軟體架構設計</span></a></li>
+      <li><a href="#unit-design"><span class="n">3</span><span>單元設計與實作</span></a></li>
+      <li><a href="#unit-verification"><span class="n">4</span><span>單元驗證</span></a></li>
+      <li><a href="#integration"><span class="n">5</span><span>整合與驗證</span></a></li>
+      <li><a href="#vmodel"><span class="n">6</span><span>V-model 全景</span></a></li>
+      <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2 class="step">總覽</h2>
+      <p class="lede">Part 6 是整套標準裡，跟你日常工作最直接相關的部分。這一圈會花最多時間，因為它幾乎就是在講「軟體要怎麼開發才算合規」。</p>
+      <div class="note">
+        <p class="note-title">實務建議</p>
+        <p>如果公司內部有既有的 ASIL C/D 專案的 SW 架構文件或測試計畫，找一份來對照著這一圈的內容讀，會比空讀條文有效率很多。</p>
+      </div>
+    </section>
+
+    <section id="requirements">
+      <h2 class="step">軟體安全需求</h2>
+      <p class="lede">Software Safety Requirements 不是憑空寫出來的，而是從系統層的 Technical Safety Requirements（見第 4 圈 Part 4）分解、分配到軟體之後，進一步具體化而來。</p>
+      <ul class="plain">
+        <li>需求必須維持可追溯性：能回頭找到它對應到哪一條 Technical Safety Requirement、哪一個 Safety Goal。</li>
+        <li>需求要寫得可驗證——能被明確的測試方法證明有沒有達成，模糊的敘述無法通過安全需求審查。</li>
+        <li>需求會隨系統設計變動而變動，變更時要走變更管理流程（見第 2 圈 Part 8）。</li>
+      </ul>
+    </section>
+
+    <section id="architecture">
+      <h2 class="step">軟體架構設計</h2>
+      <p class="lede">架構設計階段決定軟體要怎麼分層、怎麼模組化，直接影響之後測試與維護的難度。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>原則</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td>模組化 / 階層化</td><td>限制模組間耦合、控制複雜度，讓每個模組容易獨立理解與測試。</td></tr>
+            <tr><td>Defensive programming</td><td>對輸入值、介面呼叫做合理性檢查，預期並處理非預期的情況，而不是假設輸入永遠正確。</td></tr>
+            <tr><td>Freedom from interference</td><td>混合 ASIL（或含 QM）的軟體元件共用同一硬體時，架構要能保證彼此不互相干擾（詳見第 3 圈 Part 9）。</td></tr>
+            <tr><td>可支援的表示法</td><td>依 ASIL 等級不同，架構設計建議採用的表示法（如結構化圖示、正式化程度）嚴謹度也不同。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="unit-design">
+      <h2 class="step">單元設計與實作</h2>
+      <p class="lede">這是你每天實際在做的事：依編碼準則寫程式碼、跑靜態分析、接受程式碼審查。</p>
+      <ol class="steps">
+        <li>採用限制語言中容易出錯用法的編碼準則（實務上常見的具體做法是 <b>MISRA C</b>／<b>MISRA C++</b>）。</li>
+        <li>用靜態分析工具檢查是否符合編碼準則，並控制函式的圈複雜度（cyclomatic complexity）。</li>
+        <li>透過程式碼審查（code review）找出邏輯錯誤與不符準則的地方。</li>
+        <li>撰寫程式碼時同步維護與需求的追溯關係，方便之後驗證與變更影響分析。</li>
+      </ol>
+      <div class="note warn">
+        <p class="note-title">⚠ MISRA 不是 ISO 26262 的一部分</p>
+        <p>MISRA C/C++ 是獨立於 ISO 26262 的產業編碼準則，只是業界常用它來落實 Part 6 對編碼規範的要求，兩者是互補關係，不要把它們搞混成同一份標準。</p>
+      </div>
+    </section>
+
+    <section id="unit-verification">
+      <h2 class="step">單元驗證</h2>
+      <p class="lede">Software Unit Verification 針對單一軟體單元，常見方法包括：</p>
+      <ul class="plain">
+        <li>Requirements-based test（依需求設計測試案例）</li>
+        <li>Boundary value analysis（邊界值分析）、equivalence class analysis（等價類分析）</li>
+        <li>Error guessing、fault injection（錯誤猜測、故障注入）</li>
+        <li>結構覆蓋率量測：statement coverage → branch/decision coverage → 高 ASIL 常見的 MC/DC（modified condition/decision coverage）</li>
+      </ul>
+      <div class="note">
+        <p class="note-title">趨勢，不是絕對數字</p>
+        <p>隨 ASIL 等級提高，建議採用的結構覆蓋率方法通常也越嚴謹。實際要求以你專案適用的 ASIL 等級與公司內部流程規範為準，這裡只說明大方向趨勢。</p>
+      </div>
+    </section>
+
+    <section id="integration">
+      <h2 class="step">整合與驗證</h2>
+      <p class="lede">Software Integration Verification 驗證多個單元或元件組合起來之後的介面與互動行為，可能在 host（開發主機模擬）或 target（實際硬體）環境進行，依驗證目的而定。</p>
+      <ul class="plain">
+        <li>介面測試：確認模組之間傳遞的資料格式、時序符合預期。</li>
+        <li>資源使用評估：堆疊使用量、執行時間、記憶體使用量是否在預算內。</li>
+        <li>回歸測試：確保新變更沒有破壞既有已驗證過的行為。</li>
+      </ul>
+    </section>
+
+    <section id="vmodel">
+      <h2 class="step">V-model 全景</h2>
+      <p class="lede">Part 6 的活動大致對應到經典的 V-model：左邊逐層往下設計，底部實作，右邊逐層往上驗證，每一層驗證都對應回同一層的設計。</p>
+      <figure>
+        <svg viewBox="0 0 880 460" role="img" aria-label="軟體開發 V-model：左側由上而下為安全需求、架構設計、單元設計，底部為實作，右側由下而上為單元驗證、整合驗證、安全需求驗證，並以虛線標示對應的驗證關係">
+          <g stroke="currentColor" stroke-width="1.4" fill="none" opacity=".7">
+            <path d="M135,115 L215,170"/>
+            <path d="M215,225 L290,280"/>
+            <path d="M400,325 L380,390"/>
+            <path d="M520,390 L480,335"/>
+            <path d="M590,280 L665,225"/>
+            <path d="M665,170 L745,115"/>
+          </g>
+          <g stroke="currentColor" stroke-width="1" stroke-dasharray="4 3" opacity=".55">
+            <line x1="250" y1="87.5" x2="630" y2="87.5"/>
+            <line x1="330" y1="197.5" x2="550" y2="197.5"/>
+            <line x1="400" y1="307.5" x2="480" y2="307.5"/>
+          </g>
+
+          <g fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="20" y="60" width="230" height="55" rx="8"/>
+            <rect x="100" y="170" width="230" height="55" rx="8"/>
+            <rect x="180" y="280" width="220" height="55" rx="8"/>
+            <rect x="480" y="280" width="220" height="55" rx="8"/>
+            <rect x="550" y="170" width="230" height="55" rx="8"/>
+            <rect x="630" y="60" width="230" height="55" rx="8"/>
+          </g>
+          <rect x="340" y="390" width="200" height="50" rx="8" fill="none" stroke="#0F6079" stroke-width="2"/>
+
+          <g font-family="Noto Sans TC, sans-serif" font-size="12.5" fill="currentColor" text-anchor="middle">
+            <text x="135" y="83">Software Safety</text><text x="135" y="99">Requirements</text>
+            <text x="215" y="193">Software Architectural</text><text x="215" y="209">Design</text>
+            <text x="290" y="303">Software Unit</text><text x="290" y="319">Design</text>
+            <text x="590" y="303">Software Unit</text><text x="590" y="319">Verification</text>
+            <text x="665" y="193">Software Integration</text><text x="665" y="209">Verification</text>
+            <text x="745" y="83">Verification of SW</text><text x="745" y="99">Safety Requirements</text>
+          </g>
+          <text x="440" y="418" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="13" font-weight="700" fill="#0F6079">Implementation</text>
+          <text x="440" y="435" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="10.5" fill="currentColor" opacity=".75">依編碼準則撰寫程式碼</text>
+        </svg>
+        <figcaption><b>虛線代表驗證對應關係。</b>每一層右側的驗證活動，都是在確認對應左側那一層的設計是否被正確實現——單元驗證對應單元設計、整合驗證對應架構設計、安全需求驗證對應最初的安全需求。</figcaption>
+      </figure>
+    </section>
+
+    <section id="quiz">
+      <h2 class="step">測驗：你讀懂了多少？</h2>
+      <p class="lede">作答完會立刻看到對錯、正解、解析與出處連結，並算出百分比。</p>
+      <div id="quizContainer"></div>
+    </section>
+  </main>
+</div>
+
+<footer class="site-footer">ISO 26262 學習網站 v1.0</footer>
+
+<script src="/assets/data/circles.js"></script>
+<script src="/assets/data/sources.js"></script>
+<script src="/assets/js/theme-toggle.js"></script>
+<script src="/assets/js/api-client.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/toc-scrollspy.js"></script>
+<script src="/assets/js/quiz-engine.js"></script>
+<script src="/assets/data/circle-01.quiz.js"></script>
+<script>
+  window.ISO26262Quiz.mount('quizContainer', 'circle-01-software-development-part6', window.ISO26262_QUIZ_CIRCLE_01);
+</script>
+</body>
+</html>

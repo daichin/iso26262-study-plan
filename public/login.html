@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登入 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+<style>
+  .login-shell { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; }
+  .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 2rem 1.8rem; box-shadow: var(--shadow); }
+  .login-card h1 { font-size: 1.4rem; margin-bottom: .3rem; }
+  .login-card .lede { margin-bottom: 1.4rem; }
+  .form-field { max-width: none; }
+</style>
+</head>
+<body>
+<div class="login-shell">
+  <div class="login-card">
+    <div id="loginPane">
+      <h1>ISO 26262 學習網站</h1>
+      <p class="lede">請用管理者提供的帳號密碼登入。</p>
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="username">
+      </div>
+      <div class="form-field">
+        <label for="password">密碼</label>
+        <input id="password" type="password" autocomplete="current-password">
+      </div>
+      <div class="form-error" id="loginError"></div>
+      <button class="btn primary" id="loginBtn" type="button" style="width:100%">登入</button>
+    </div>
+
+    <div id="changePasswordPane" style="display:none">
+      <h1>請設定新密碼</h1>
+      <p class="lede">為了帳號安全，第一次登入必須更換一組只有你自己知道的密碼。</p>
+      <div class="form-field">
+        <label for="newPassword">新密碼（至少 8 碼）</label>
+        <input id="newPassword" type="password" autocomplete="new-password">
+      </div>
+      <div class="form-field">
+        <label for="newPassword2">再輸入一次</label>
+        <input id="newPassword2" type="password" autocomplete="new-password">
+      </div>
+      <div class="form-error" id="changeError"></div>
+      <button class="btn primary" id="changeBtn" type="button" style="width:100%">更新密碼並繼續</button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/theme-toggle.js"></script>
+<script>
+(function () {
+  const loginPane = document.getElementById('loginPane');
+  const changePane = document.getElementById('changePasswordPane');
+
+  async function raw(path, options) {
+    const opts = Object.assign({ credentials: 'same-origin' }, options);
+    if (opts.body && typeof opts.body !== 'string') {
+      opts.body = JSON.stringify(opts.body);
+      opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers);
+    }
+    const res = await fetch(path, opts);
+    const text = await res.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch (e) { data = text; } }
+    return { ok: res.ok, status: res.status, data: data };
+  }
+
+  function showChangePane() {
+    loginPane.style.display = 'none';
+    changePane.style.display = 'block';
+  }
+
+  async function checkExistingSession() {
+    const res = await raw('/api/auth/me', { method: 'GET' });
+    if (!res.ok) return;
+    if (res.data.mustChangePassword) {
+      showChangePane();
+    } else {
+      window.location.href = '/index.html';
+    }
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async function () {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('loginError');
+    errorEl.textContent = '';
+
+    if (!email || !password) {
+      errorEl.textContent = '請輸入 Email 與密碼。';
+      return;
+    }
+
+    const res = await raw('/api/auth/login', { method: 'POST', body: { email: email, password: password } });
+    if (!res.ok) {
+      errorEl.textContent = '帳號或密碼不正確，請再試一次。';
+      return;
+    }
+    if (res.data.mustChangePassword) {
+      showChangePane();
+    } else {
+      window.location.href = '/index.html';
+    }
+  });
+
+  document.getElementById('changeBtn').addEventListener('click', async function () {
+    const p1 = document.getElementById('newPassword').value;
+    const p2 = document.getElementById('newPassword2').value;
+    const errorEl = document.getElementById('changeError');
+    errorEl.textContent = '';
+
+    if (p1.length < 8) {
+      errorEl.textContent = '新密碼至少要 8 個字元。';
+      return;
+    }
+    if (p1 !== p2) {
+      errorEl.textContent = '兩次輸入的密碼不一致。';
+      return;
+    }
+
+    const res = await raw('/api/auth/change-password', { method: 'POST', body: { newPassword: p1 } });
+    if (!res.ok) {
+      errorEl.textContent = '更新密碼失敗，請重新整理頁面再試一次。';
+      return;
+    }
+    window.location.href = '/index.html';
+  });
+
+  checkExistingSession();
+})();
+</script>
+</body>
+</html>

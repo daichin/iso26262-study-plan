@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: iso26262-study-plan
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false # 貼上你自己的 Neon 連線字串
+      - key: SESSION_SECRET
+        sync: false # 隨機字串，保護登入狀態
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_INITIAL_PASSWORD
+        sync: false
+      - key: NODE_ENV
+        value: production

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>部署手冊 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="../public/assets/css/theme.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">部署手冊 ・ v1.0</p>
+    <h1>ISO 26262 學習網站部署手冊</h1>
+    <p class="standfirst">從零開始把網站架設起來。全部在網頁上完成，只有第一步需要打兩行指令。</p>
+    <ul class="facts">
+      <li>所需時間 <b>約 30 分鐘</b></li>
+      <li>費用 <b>NT$0</b></li>
+      <li>信用卡 <b>不需要</b></li>
+      <li>需具備 <b>GitHub / Render / Neon 帳號</b></li>
+    </ul>
+  </div>
+</header>
+
+<div class="shell shell-with-toc">
+  <nav class="index-toc" id="index" aria-label="目錄">
+    <h2>目錄</h2>
+    <button class="toc-toggle" id="tocToggle" aria-expanded="false" aria-controls="tocList">☰ 目錄</button>
+    <ol id="tocList">
+      <li><a href="#overview"><span class="n">－</span><span>開始之前</span></a></li>
+      <li><a href="#map"><span class="n">－</span><span>整體流程圖</span></a></li>
+      <li><a href="#github"><span class="n">0</span><span>上傳到 GitHub</span></a></li>
+      <li><a href="#neon"><span class="n">1</span><span>建立資料庫</span></a></li>
+      <li><a href="#render"><span class="n">2</span><span>建立網站主機</span></a></li>
+      <li><a href="#envvars"><span class="n">3</span><span>貼上五項設定</span></a></li>
+      <li><a href="#migrate"><span class="n">4</span><span>建立資料表與管理者</span></a></li>
+      <li><a href="#first-login"><span class="n">5</span><span>第一次登入</span></a></li>
+      <li><a href="#invite"><span class="n">6</span><span>新增團隊成員</span></a></li>
+      <li><a href="#ongoing"><span class="n">－</span><span>日後的操作</span></a></li>
+      <li><a href="#faq"><span class="n">？</span><span>常見問題</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2 class="step">開始之前</h2>
+      <p class="lede">這套系統由三個免費服務組合而成，各自負責一件事。你要做的，就是分別去申請，把它們給你的「一長串英文數字」貼到 Render，最後開啟網站。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>服務</th><th>負責什麼</th><th>免費額度</th></tr></thead>
+          <tbody>
+            <tr><td><b>GitHub</b></td><td>存放程式碼，Render 從這裡讀取部署</td><td>公開或私有儲存庫皆免費</td></tr>
+            <tr><td><b>Neon</b></td><td>存放帳號、測驗成績、進度資料</td><td>永久免費，<b>資料不會過期</b></td></tr>
+            <tr><td><b>Render</b></td><td>實際執行網站，並提供免費網址</td><td>永久免費，閒置會休眠約 1 分鐘喚醒</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <p class="note-title">先準備一個記事本</p>
+        <p>接下來會請你複製幾組長字串（連線字串、隨機密鑰）。建議先開一個記事本暫時貼著，最後一次貼到 Render。<b>全部設定完成後，請把記事本刪掉。</b></p>
+      </div>
+    </section>
+
+    <section id="map">
+      <h2 class="step">整體流程圖</h2>
+      <p class="lede">先看懂這張圖，後面每一步都只是在填其中一格。</p>
+      <figure>
+        <svg viewBox="0 0 880 380" role="img" aria-label="GitHub 存放程式碼，Render 用 Blueprint 讀取程式碼並連上 Neon 資料庫，環境變數直接貼在 Render 後台，完成後網站上線">
+          <defs>
+            <marker id="dm-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+            <marker id="dm-ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0F6079"/>
+            </marker>
+          </defs>
+
+          <rect x="20" y="40" width="220" height="80" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="130" y="72" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="15" font-weight="700" fill="currentColor">GitHub 儲存庫</text>
+          <text x="130" y="94" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">程式碼 + render.yaml</text>
+
+          <rect x="20" y="200" width="220" height="80" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="130" y="232" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="15" font-weight="700" fill="currentColor">Neon</text>
+          <text x="130" y="254" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">Postgres 資料庫</text>
+
+          <rect x="330" y="80" width="260" height="200" rx="10" fill="none" stroke="#0F6079" stroke-width="2"/>
+          <text x="460" y="112" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="15" font-weight="700" fill="#0F6079">Render 網站主機</text>
+          <text x="460" y="140" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">New from Blueprint</text>
+          <text x="460" y="160" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">讀取 render.yaml</text>
+          <line x1="360" y1="180" x2="560" y2="180" stroke="currentColor" stroke-width="1" opacity=".4"/>
+          <text x="460" y="204" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">Environment</text>
+          <text x="460" y="224" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">五項設定值</text>
+          <text x="460" y="252" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="10.5" fill="currentColor" opacity=".75">執行 Express + npm run migrate</text>
+
+          <path d="M240,80 H330" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#dm-ah)"/>
+          <text x="285" y="72" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">讀取程式碼</text>
+
+          <path d="M240,240 H300 Q315,240 315,225 V196" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#dm-ah)"/>
+          <text x="150" y="290" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11" fill="currentColor">連線字串手動貼到 Render 的 Environment</text>
+
+          <path d="M590,180 H660" fill="none" stroke="#0F6079" stroke-width="2" marker-end="url(#dm-ah-a)"/>
+          <rect x="672" y="140" width="188" height="80" rx="9" fill="none" stroke="#0F6079" stroke-width="2"/>
+          <text x="766" y="172" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="14" font-weight="700" fill="#0F6079">網站上線</text>
+          <text x="766" y="194" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">*.onrender.com</text>
+        </svg>
+        <figcaption><b>沒有 GitHub Actions，Render 直接讀取你的儲存庫。</b>跟一般「按鈕部署」不同的是，這裡的五項設定值是直接貼在 Render 後台的 Environment 分頁，不是貼在 GitHub 裡。</figcaption>
+      </figure>
+    </section>
+
+    <section id="github">
+      <h2 class="step"><span class="num">0</span>上傳到 GitHub</h2>
+      <p class="lede">專案已經在本機用 <code>git init</code> 建好並 commit 完成，你只要建立一個空的 GitHub 儲存庫，把它接上去、推上去即可。這是全程唯一需要打指令的一步。</p>
+
+      <ol class="steps">
+        <li>登入 <a href="https://github.com">github.com</a>，點右上角 <kbd>+</kbd> → <kbd>New repository</kbd>。</li>
+        <li><b>Repository name</b> 輸入 <code>iso26262-study-plan</code>（或你喜歡的名稱）。</li>
+        <li>Public 或 Private 皆可——這個專案沒有排程或 Actions，兩者都不影響費用。</li>
+        <li><b>下面三個選項都不要勾</b>：Add a README file、Add .gitignore、Choose a license（本機專案已經有這些內容，勾了反而會衝突）。</li>
+        <li>點 <kbd>Create repository</kbd>，記下顯示的網址，例如 <code>https://github.com/你的帳號/iso26262-study-plan.git</code>。</li>
+      </ol>
+
+      <p>回到本機的專案資料夾，執行以下兩行（把網址換成你剛剛記下的那一串）。在 Claude Code 裡可以直接在輸入框用 <code>!</code> 開頭執行：</p>
+      <div class="cmd">git remote add origin https://github.com/你的帳號/iso26262-study-plan.git
+git branch -M main
+git push -u origin main</div>
+
+      <div class="note good">
+        <p class="note-title">✓ 這一步只需要做一次</p>
+        <p>程式上傳之後，日後要重新部署、改設定，全部都在網頁上完成，不需要再打指令（除非你要更新程式碼再推一次）。</p>
+      </div>
+    </section>
+
+    <section id="neon">
+      <h2 class="step"><span class="num">1</span>建立資料庫（Neon）</h2>
+      <p class="lede">資料庫存放所有帳號與測驗成績。Neon 的免費方案<b>資料不會過期</b>。</p>
+      <ol class="steps">
+        <li>打開 <a href="https://neon.com">neon.com</a>，按右上角的 <kbd>Sign up</kbd>，可以直接用 GitHub 帳號登入。</li>
+        <li>建立專案：名稱輸入 <code>iso26262-study</code>，其他保持預設，按 <kbd>Create project</kbd>。</li>
+        <li>畫面上會出現一段以 <code>postgresql://</code> 開頭的長字串，標示為 <b>Connection string</b>。</li>
+        <li>複製它，貼到記事本，註明 <code>DATABASE_URL</code>。</li>
+      </ol>
+      <div class="note">
+        <p class="note-title">它長這樣</p>
+        <p><code>postgresql://neondb_owner:········@ep-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require</code></p>
+      </div>
+    </section>
+
+    <section id="render">
+      <h2 class="step"><span class="num">2</span>建立網站主機（Render）</h2>
+      <p class="lede">Render 負責實際執行系統，並提供一個 <code>.onrender.com</code> 的免費網址。因為專案裡已經有 <code>render.yaml</code>，Render 可以直接照著它把設定填好大半。</p>
+      <ol class="steps">
+        <li>到 <a href="https://render.com">render.com</a> 按 <kbd>Get Started</kbd>，用 GitHub 帳號登入並授權存取你剛剛建立的儲存庫。</li>
+        <li>按 <kbd>New +</kbd> → <kbd>Blueprint</kbd>，選擇 <code>iso26262-study-plan</code> 這個儲存庫。</li>
+        <li>Render 會讀到 <code>render.yaml</code>，自動列出服務名稱 <code>iso26262-study-plan</code> 與需要你填寫的環境變數（因為都標記 <code>sync: false</code>，所以會請你手動輸入）。</li>
+        <li>先把看得到的欄位留白或填暫時值，按 <kbd>Apply</kbd> 建立服務。<b>第一次啟動可能會失敗，這是正常的</b>，下一步會回來把環境變數補齊。</li>
+      </ol>
+    </section>
+
+    <section id="envvars">
+      <h2 class="step"><span class="num">3</span>貼上五項設定</h2>
+      <p class="lede">到剛剛建立的服務頁面，左側點 <b>Environment</b>，把記事本裡的東西貼進去。名稱必須<b>一字不差</b>，包含大小寫與底線。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>名稱</th><th>內容</th><th class="src">來源</th></tr></thead>
+          <tbody>
+            <tr><td><code>DATABASE_URL</code></td><td>Neon 連線字串</td><td class="src">步驟 1</td></tr>
+            <tr><td><code>SESSION_SECRET</code></td><td>保護登入狀態的隨機字串</td><td class="src">自己產生</td></tr>
+            <tr><td><code>ADMIN_EMAIL</code></td><td>第一個管理者帳號的 Email</td><td class="src">自己決定</td></tr>
+            <tr><td><code>ADMIN_NAME</code></td><td>第一個管理者的姓名</td><td class="src">自己決定</td></tr>
+            <tr><td><code>ADMIN_INITIAL_PASSWORD</code></td><td>管理者第一次登入的臨時密碼</td><td class="src">自己決定</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>隨機字串怎麼生？</h3>
+      <p><code>SESSION_SECRET</code> 只要夠長又難猜就好，你不需要記住它。隨手在鍵盤上打 40 個以上的英數字即可，例如 <code>k8Fq2mZp7Lw4Rt9YvXb3Nc6Hd1Js5Gk0Aq2Wf8E</code>。</p>
+
+      <div class="note good">
+        <p class="note-title">✓ 填完按 Save，Render 會自動重新部署</p>
+        <p>存檔後 Render 會用新的環境變數重新啟動服務。等 1～2 分鐘，狀態變成綠色的 <b>Live</b> 就完成了。</p>
+      </div>
+    </section>
+
+    <section id="migrate">
+      <h2 class="step"><span class="num">4</span>建立資料表與管理者帳號</h2>
+      <p class="lede">網站啟動了，但資料庫裡還是空的。要跑一次 <code>npm run migrate</code> 來建立資料表，並依 <code>ADMIN_*</code> 建立第一個管理者帳號。</p>
+
+      <ol class="steps">
+        <li>回到本機的專案資料夾，把 <code>.env.example</code> 複製一份成 <code>.env</code>。</li>
+        <li>打開 <code>.env</code>，把 <code>DATABASE_URL</code>、<code>ADMIN_EMAIL</code>、<code>ADMIN_NAME</code>、<code>ADMIN_INITIAL_PASSWORD</code> 填成<b>跟你剛剛貼到 Render 的完全一樣的值</b>。</li>
+        <li>執行：</li>
+      </ol>
+      <div class="cmd">npm install
+npm run migrate</div>
+      <ol class="steps" start="4">
+        <li>看到 <code>已建立管理者帳號</code> 的訊息就完成了。因為本機的 <code>DATABASE_URL</code> 跟 Render 上的指向同一個 Neon 資料庫，建好的表跟帳號 Render 那邊也看得到。</li>
+      </ol>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 這一步只需要做一次</p>
+        <p>之後不要重複執行 <code>npm run migrate</code>——腳本會偵測 <code>ADMIN_EMAIL</code> 是否已存在，重複執行不會出錯，但也沒有必要。</p>
+      </div>
+    </section>
+
+    <section id="first-login">
+      <h2 class="step"><span class="num">5</span>第一次登入</h2>
+      <ol class="steps">
+        <li>打開 Render 服務頁面最上方顯示的網址（例如 <code>https://iso26262-study-plan.onrender.com</code>）。<b>第一次可能要等將近 1 分鐘</b>，這是免費方案的喚醒時間。</li>
+        <li>用 <code>ADMIN_EMAIL</code> 與 <code>ADMIN_INITIAL_PASSWORD</code> 登入。</li>
+        <li>系統會<b>立刻要求你設定新密碼</b>，請設定一組只有你知道的。</li>
+      </ol>
+      <div class="note warn">
+        <p class="note-title">⚠ 為什麼一定要改密碼</p>
+        <p>初始密碼是明文存在 Render 的環境變數設定裡，因此系統<b>強制</b>你在第一次登入時更換，不改就無法使用任何功能。</p>
+      </div>
+    </section>
+
+    <section id="invite">
+      <h2 class="step"><span class="num">6</span>新增團隊成員</h2>
+      <p class="lede">登入後點導覽列的<b>成員管理</b>，幫團隊成員建立帳號（姓名、Email、臨時密碼）。他們用臨時密碼登入後，一樣會被強制要求改成自己的密碼。</p>
+      <p>想掌握大家讀到哪，點導覽列的<b>團隊進度</b>，會看到每個人在每一圈的最新成績。</p>
+    </section>
+
+    <section id="ongoing">
+      <h2 class="step">日後的操作</h2>
+      <div class="tabmap">
+        <div><b>成員管理</b><span>新增/查看團隊成員帳號，在網站上完成，不需要重新部署。</span></div>
+        <div><b>團隊進度</b><span>看每位成員在每一圈的最新成績。</span></div>
+        <div><b>更新程式碼</b><span>本機改完後 <code>git push</code>，Render 預設會自動偵測並重新部署。</span></div>
+        <div><b>Render → Logs</b><span>網站出錯時，先來這裡看即時錯誤訊息。</span></div>
+      </div>
+
+      <h3>重新部署（例如程式有更新）</h3>
+      <div class="cmd">git add -A
+git commit -m "更新內容"
+git push</div>
+      <p>Render 偵測到新的 commit 後會自動重新建置部署，不需要手動觸發。</p>
+    </section>
+
+    <section id="faq">
+      <h2 class="step">常見問題</h2>
+
+      <details>
+        <summary>網站打開很慢，一直轉圈圈</summary>
+        <p>免費方案在 15 分鐘沒人使用後會休眠，下一個人開啟時需要約 1 分鐘喚醒。喚醒後就恢復正常速度，這是正常現象。</p>
+      </details>
+
+      <details>
+        <summary>部署失敗，Render 顯示紅色 Failed</summary>
+        <p>點進該次部署看 Logs。最常見原因是環境變數缺少或名稱打錯，回到步驟 3 檢查五項設定的名稱是否完全一致（大小寫、底線）。</p>
+      </details>
+
+      <details>
+        <summary>登入時顯示帳號或密碼不正確</summary>
+        <p>確認 <code>npm run migrate</code> 已經成功執行過（步驟 4），且輸入的是 <code>ADMIN_EMAIL</code> 與 <code>ADMIN_INITIAL_PASSWORD</code> 當初設定的值，注意大小寫。</p>
+      </details>
+
+      <details>
+        <summary>忘記自己改過的密碼怎麼辦</summary>
+        <p>目前版本沒有「忘記密碼」自助流程。請直接到 Neon 的 SQL Editor，把該帳號的 <code>must_change_password</code> 欄位改回 <code>true</code>，該使用者下次登入原本的臨時密碼仍能用（若也忘記臨時密碼，需要請管理者重新用同一個 Email 手動更新一筆 <code>users</code> 資料，或刪除後重建帳號）。</p>
+      </details>
+
+      <details>
+        <summary>資料會不會不見</summary>
+        <p>不會。Neon 免費方案不會刪除資料，所有測驗紀錄與帳號都會保留。</p>
+      </details>
+
+      <details>
+        <summary>想加新的一圈學習內容怎麼辦</summary>
+        <p>這是設計上就支援的：在 <code>public/circles/</code> 新增一個 <code>circle-0X-xxx.html</code>，在 <code>public/assets/data/</code> 新增對應的 <code>circle-0X.quiz.js</code>，並在 <code>public/assets/data/circles.js</code> 與 <code>server/circles.js</code> 各加一筆設定，重新 <code>git push</code> 即可，不需要更動資料庫結構。</p>
+      </details>
+    </section>
+
+    <footer class="site-footer">ISO 26262 學習網站部署手冊 v1.0</footer>
+  </main>
+</div>
+
+<script src="../public/assets/js/theme-toggle.js"></script>
+<script src="../public/assets/js/toc-scrollspy.js"></script>
+</body>
+</html>

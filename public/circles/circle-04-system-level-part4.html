@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>系統層開發（Part 4） — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body>
+<header id="app-header" data-current="circle-04-system-level-part4"></header>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">第 4 圈・系統層</p>
+    <h1>系統層開發</h1>
+    <p class="standfirst">理解你的 Software Safety Requirement 從哪裡來——這一圈補的是需求鏈的上游，不是要你變成系統工程師。</p>
+  </div>
+</header>
+
+<div class="shell shell-with-toc">
+  <nav class="index-toc" id="index" aria-label="目錄">
+    <h2>目錄</h2>
+    <button class="toc-toggle" id="tocToggle" aria-expanded="false">☰ 目錄</button>
+    <ol id="tocList">
+      <li><a href="#overview"><span class="n">－</span><span>為什麼軟體工程師要懂這個</span></a></li>
+      <li><a href="#chain"><span class="n">1</span><span>需求分解鏈</span></a></li>
+      <li><a href="#item-definition"><span class="n">2</span><span>Item Definition</span></a></li>
+      <li><a href="#tsc"><span class="n">3</span><span>Technical Safety Concept</span></a></li>
+      <li><a href="#design-integration"><span class="n">4</span><span>系統設計與整合測試</span></a></li>
+      <li><a href="#validation"><span class="n">5</span><span>Safety Validation</span></a></li>
+      <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2 class="step">為什麼軟體工程師要懂這個</h2>
+      <p class="lede">你平常收到的「軟體安全需求」不是憑空冒出來的。Part 4 講的是系統層的開發流程，重點是搞懂這條需求鏈，之後拿到一條需求，你會知道它對應到哪個 safety goal、為什麼存在、可以往上追溯給誰確認。</p>
+      <div class="note">
+        <p class="note-title">跟第 6 圈（Part 6）的關係</p>
+        <p>Part 6 講你怎麼把 <b>Software Safety Requirement（SSR）</b>實作成程式碼；Part 4 講 SSR 之前發生了什麼事。兩者合起來才是完整的一條鏈。</p>
+      </div>
+    </section>
+
+    <section id="chain">
+      <h2 class="step"><span class="num">1</span>需求分解鏈</h2>
+      <p class="lede">從 Safety Goal 到你手上的軟體需求，中間會經過幾層分解與分配（allocation）。</p>
+      <figure>
+        <svg viewBox="0 0 880 230" role="img" aria-label="需求分解鏈：Safety Goal 分解為 Functional Safety Requirement，再分解為 Technical Safety Requirement，分配到硬體與軟體，軟體端最終成為 Software Safety Requirement">
+          <defs>
+            <marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0F6079"/>
+            </marker>
+          </defs>
+          <g fill="none" stroke="#0F6079" stroke-width="1.6">
+            <rect x="10" y="85" width="130" height="55" rx="8"/>
+            <rect x="190" y="85" width="130" height="55" rx="8"/>
+            <rect x="370" y="85" width="130" height="55" rx="8"/>
+            <rect x="560" y="15" width="120" height="50" rx="8"/>
+            <rect x="560" y="140" width="120" height="50" rx="8"/>
+            <rect x="730" y="140" width="140" height="50" rx="8"/>
+          </g>
+          <g font-family="Noto Sans TC, sans-serif" fill="currentColor" text-anchor="middle">
+            <text x="75" y="107" font-size="12.5" font-weight="700">Safety Goal</text>
+            <text x="75" y="124" font-size="10.5" opacity=".75">Part 3 產出</text>
+            <text x="255" y="107" font-size="12.5" font-weight="700">FSR</text>
+            <text x="255" y="124" font-size="10.5" opacity=".75">Functional Safety Req.</text>
+            <text x="435" y="107" font-size="12.5" font-weight="700">TSR</text>
+            <text x="435" y="124" font-size="10.5" opacity=".75">Technical Safety Req.</text>
+            <text x="620" y="35" font-size="12" font-weight="700">Hardware</text>
+            <text x="620" y="50" font-size="9.5" opacity=".75">硬體需求</text>
+            <text x="620" y="160" font-size="12" font-weight="700">Software</text>
+            <text x="620" y="175" font-size="9.5" opacity=".75">軟體需求</text>
+            <text x="800" y="160" font-size="12.5" font-weight="700">SSR</text>
+            <text x="800" y="176" font-size="9.5" opacity=".75">Software Safety Req.</text>
+          </g>
+          <g stroke="#0F6079" stroke-width="1.6" fill="none" marker-end="url(#ah4)">
+            <path d="M140,112 H186"/>
+            <path d="M320,112 H366"/>
+            <path d="M500,112 H520 V40 H556"/>
+            <path d="M500,112 H520 V165 H556"/>
+            <path d="M680,165 H726"/>
+          </g>
+          <text x="530" y="105" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">allocation</text>
+        </svg>
+        <figcaption><b>Software Safety Requirement 不是第一手需求。</b>它是 Technical Safety Requirement 分配到軟體之後的產物，往上兩層才會碰到 Safety Goal 本身。拿到一條需求時，值得養成習慣去追溯它對應的 TSR 與 Safety Goal。</figcaption>
+      </figure>
+    </section>
+
+    <section id="item-definition">
+      <h2 class="step"><span class="num">2</span>Item Definition</h2>
+      <p class="lede">整個安全生命週期的起點：先把「item」的邊界畫清楚——它是什麼、有哪些功能、跟車上其他系統的介面是什麼。</p>
+      <p>Item definition 確認的範圍，會直接影響 Part 3 做 HARA（Hazard Analysis and Risk Assessment）時的假設是否成立。如果之後 item 的邊界或功能有變動，代表前面的 HARA 與 Safety Goal 可能需要重新檢視，這就是 ISO 26262 講的 tailoring／impact analysis 的起點。</p>
+      <div class="note warn">
+        <p class="note-title">常見誤解</p>
+        <p>Item definition 不是系統規格書的全部內容，而是聚焦在「安全分析需要知道的邊界資訊」——功能、介面、運作環境假設。</p>
+      </div>
+    </section>
+
+    <section id="tsc">
+      <h2 class="step"><span class="num">3</span>Technical Safety Concept</h2>
+      <p class="lede">把 Functional Safety Concept（Part 3 產出，講「系統要做到什麼」）具體化成 Technical Safety Requirement（講「系統架構要怎麼實現」）。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>階段</th><th>回答的問題</th><th>產出</th></tr></thead>
+          <tbody>
+            <tr><td>Functional Safety Concept</td><td>系統層級要做到什麼才算安全？</td><td>Functional Safety Requirement</td></tr>
+            <tr><td>Technical Safety Concept</td><td>要用什麼技術方案（架構、機制）實現上面的要求？</td><td>Technical Safety Requirement</td></tr>
+            <tr><td>System Design</td><td>這些需求怎麼落到具體的系統架構元件？</td><td>System Architectural Design + 分配到 HW/SW 的需求</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="design-integration">
+      <h2 class="step"><span class="num">4</span>系統設計與整合測試</h2>
+      <p class="lede">TSR 分配到硬體與軟體之後，各自依 Part 5 / Part 6 開發，最後要合起來驗證。</p>
+      <ol class="steps">
+        <li>System design：把 TSR 落實成系統架構，決定哪些功能由硬體實現、哪些由軟體實現。</li>
+        <li>依 Part 9 的安全分析方法（下一圈會講）檢查架構是否滿足 ASIL 要求，包含需不需要做 ASIL decomposition。</li>
+        <li>System integration and testing：硬體與軟體整合後，驗證系統行為是否符合 Technical Safety Requirement。</li>
+      </ol>
+      <div class="note">
+        <p class="note-title">Verification 不等於 Validation</p>
+        <p>系統整合測試做的是 <b>verification</b>——確認產出符合上一層的規格（TSR）。真正確認「這台車在實際使用情境下安全」的是下一節的 <b>validation</b>，兩者是不同層次的確認。</p>
+      </div>
+    </section>
+
+    <section id="validation">
+      <h2 class="step"><span class="num">5</span>Safety Validation</h2>
+      <p class="lede">Safety validation 是在 item／車輛層級，用真實或具代表性的使用情境，確認最初的 Safety Goal 真的有被達成——不是只在文件層級打勾。</p>
+      <p>這跟軟體單元測試、整合測試（verification，確認「做得對不對」）不同：validation 問的是「做的東西對不對」，也就是最初 HARA 辨識出的風險，在真實情境下是否真的被控制住了。</p>
+    </section>
+
+    <section id="quiz">
+      <h2 class="step">測驗：你讀懂了多少？</h2>
+      <p class="lede">作答完會立刻看到對錯、正解、解析與出處連結，並算出百分比。</p>
+      <div id="quizContainer"></div>
+    </section>
+  </main>
+</div>
+
+<footer class="site-footer">ISO 26262 學習網站 v1.0</footer>
+
+<script src="/assets/data/circles.js"></script>
+<script src="/assets/data/sources.js"></script>
+<script src="/assets/js/theme-toggle.js"></script>
+<script src="/assets/js/api-client.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/toc-scrollspy.js"></script>
+<script src="/assets/js/quiz-engine.js"></script>
+<script src="/assets/data/circle-04.quiz.js"></script>
+<script>
+  window.ISO26262Quiz.mount('quizContainer', 'circle-04-system-level-part4', window.ISO26262_QUIZ_CIRCLE_04);
+</script>
+</body>
+</html>

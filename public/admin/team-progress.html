@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>團隊進度 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body>
+<header id="app-header" data-current="admin-team-progress"></header>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">管理者功能</p>
+    <h1>團隊進度</h1>
+    <p class="standfirst">每位成員在每一圈的最新測驗成績，方便掌握團隊讀到哪裡。</p>
+  </div>
+</header>
+
+<div class="shell">
+  <section id="team-table">
+    <h2 class="step">進度矩陣</h2>
+    <div id="teamProgressTable"></div>
+  </section>
+</div>
+
+<footer class="site-footer">ISO 26262 學習網站 v1.0 ・ 管理者功能</footer>
+
+<script src="/assets/data/circles.js"></script>
+<script src="/assets/js/theme-toggle.js"></script>
+<script src="/assets/js/api-client.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/progress-dashboard.js"></script>
+<script>
+  window.ISO26262Dashboard.renderTeamProgress('teamProgressTable');
+</script>
+</body>
+</html>

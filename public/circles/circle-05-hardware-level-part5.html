@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>硬體層基礎（Part 5） — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body>
+<header id="app-header" data-current="circle-05-hardware-level-part5"></header>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">第 5 圈・硬體層</p>
+    <h1>硬體層基礎</h1>
+    <p class="standfirst">你不用會設計電路，但你常常要寫程式去讀取、驅動這些硬體安全機制——這一圈補的是共同語言。</p>
+  </div>
+</header>
+
+<div class="shell shell-with-toc">
+  <nav class="index-toc" id="index" aria-label="目錄">
+    <h2>目錄</h2>
+    <button class="toc-toggle" id="tocToggle" aria-expanded="false">☰ 目錄</button>
+    <ol id="tocList">
+      <li><a href="#overview"><span class="n">－</span><span>為什麼軟韌體工程師要懂這個</span></a></li>
+      <li><a href="#dc"><span class="n">1</span><span>Diagnostic Coverage 是什麼</span></a></li>
+      <li><a href="#mcu-map"><span class="n">2</span><span>MCU 上常見的安全機制</span></a></li>
+      <li><a href="#mechanisms"><span class="n">3</span><span>逐一認識這些機制</span></a></li>
+      <li><a href="#metrics"><span class="n">4</span><span>SPFM／LFM 概念</span></a></li>
+      <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2 class="step">為什麼軟韌體工程師要懂這個</h2>
+      <p class="lede">Part 5 是硬體團隊的主場，但實際上很多硬體安全機制最後是「軟體讀狀態、軟體做判斷、軟體觸發反應」。這一圈不會教你怎麼設計電路，而是讓你看得懂硬體團隊給你的規格在講什麼、知道自己要寫的診斷程式碼在整個安全機制裡扮演什麼角色。</p>
+    </section>
+
+    <section id="dc">
+      <h2 class="step"><span class="num">1</span>Diagnostic Coverage 是什麼</h2>
+      <p class="lede">Diagnostic coverage（DC）描述的是：對某一類潛在失效模式，安全機制能多有效地偵測到、並讓系統做出因應。</p>
+      <p>DC 不是要求「每個失效都要 100% 偵測到」，而是依 ASIL 等級，對不同嚴重程度的失效要求不同的偵測有效程度。你在寫的每一段診斷程式碼（例如判斷某個訊號是否超出合理範圍），本質上就是在提供或提升某個失效模式的 diagnostic coverage。</p>
+      <div class="note warn">
+        <p class="note-title">本頁只講觀念，不覆蓋正式公式</p>
+        <p>DC、SPFM、LFM 在標準裡有正式的計算方法與門檻表，屬於安全工程師會精算的部分。這裡只建立概念，實際數字與公式請查閱 Part 5 原文。</p>
+      </div>
+    </section>
+
+    <section id="mcu-map">
+      <h2 class="step"><span class="num">2</span>MCU 上常見的安全機制</h2>
+      <p class="lede">下圖是一個簡化的 MCU 示意圖，標出軟韌體工程師最常打交道的幾個硬體安全機制。</p>
+      <figure>
+        <svg viewBox="0 0 700 400" role="img" aria-label="MCU 內部安全機制示意圖：Lockstep 雙核心、ADC 合理性檢查、Watchdog、RAM/Flash 的 CRC/ECC、時脈監控，以及讀取這些狀態的韌體診斷邏輯">
+          <rect x="20" y="20" width="660" height="360" rx="14" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+          <text x="40" y="45" font-family="IBM Plex Mono, monospace" font-size="12" fill="currentColor" opacity=".7">MCU</text>
+
+          <g fill="none" stroke="#0F6079" stroke-width="1.6">
+            <rect x="50" y="60" width="280" height="90" rx="8"/>
+            <rect x="65" y="85" width="110" height="40" rx="6"/>
+            <rect x="195" y="85" width="110" height="40" rx="6"/>
+            <rect x="360" y="60" width="280" height="90" rx="8"/>
+            <rect x="50" y="180" width="280" height="80" rx="8"/>
+            <rect x="360" y="180" width="280" height="80" rx="8"/>
+            <rect x="50" y="290" width="280" height="80" rx="8"/>
+            <rect x="360" y="290" width="280" height="80" rx="8"/>
+          </g>
+
+          <g font-family="Noto Sans TC, sans-serif" fill="currentColor" text-anchor="middle">
+            <text x="120" y="109" font-size="11.5" font-weight="700">Core A</text>
+            <text x="250" y="109" font-size="11.5" font-weight="700">Core B</text>
+            <text x="185" y="142" font-family="IBM Plex Mono, monospace" font-size="9.5" opacity=".7">Lockstep 比較</text>
+
+            <text x="500" y="98" font-size="13" font-weight="700">ADC</text>
+            <text x="500" y="116" font-size="10.5" opacity=".75">Plausibility / Range Check</text>
+
+            <text x="190" y="215" font-size="13" font-weight="700">Watchdog</text>
+            <text x="190" y="232" font-size="10.5" opacity=".75">Windowed Watchdog</text>
+
+            <text x="500" y="215" font-size="13" font-weight="700">RAM / Flash</text>
+            <text x="500" y="232" font-size="10.5" opacity=".75">CRC / ECC</text>
+
+            <text x="190" y="325" font-size="13" font-weight="700">Clock Monitor</text>
+            <text x="190" y="342" font-size="10.5" opacity=".75">時脈異常偵測</text>
+
+            <text x="500" y="320" font-size="12.5" font-weight="700">韌體診斷邏輯</text>
+            <text x="500" y="337" font-size="10" opacity=".75">讀取上述狀態</text>
+            <text x="500" y="351" font-size="10" opacity=".75">判斷是否進入安全狀態</text>
+          </g>
+
+          <path d="M175,105 H195" stroke="#0F6079" stroke-width="1.6" fill="none"/>
+        </svg>
+        <figcaption><b>硬體提供偵測能力，軟體決定怎麼反應。</b>圖右下角的「韌體診斷邏輯」是軟韌體工程師實際會寫的程式碼：讀取左邊與上面這些硬體機制回報的狀態，判斷要不要觸發安全反應（例如進入安全狀態、重置、通知上層系統）。</figcaption>
+      </figure>
+    </section>
+
+    <section id="mechanisms">
+      <h2 class="step"><span class="num">3</span>逐一認識這些機制</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>機制</th><th>在防什麼</th><th>軟體通常要做的事</th></tr></thead>
+          <tbody>
+            <tr><td>ADC plausibility check</td><td>感測器讀值超出合理物理範圍、訊號跳變異常</td><td>檢查讀值是否落在合理範圍、變化率是否合理</td></tr>
+            <tr><td>Windowed watchdog</td><td>程式卡死（太慢餵狗），也偵測餵狗太快（可能跳過該執行的步驟）</td><td>在規定的時間視窗內、且只能在視窗內餵狗</td></tr>
+            <tr><td>Memory CRC / ECC</td><td>記憶體內容因位元翻轉等原因損毀</td><td>讀取校驗結果、必要時觸發修正或安全反應</td></tr>
+            <tr><td>Lockstep core 比對</td><td>單一核心運算錯誤（如宇宙射線造成的暫時性錯誤）</td><td>處理比對不一致時的中斷/例外，決定後續反應</td></tr>
+            <tr><td>Clock monitor</td><td>時脈訊號異常（頻率飄移、停止）</td><td>讀取時脈監控狀態，異常時觸發安全反應</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="metrics">
+      <h2 class="step"><span class="num">4</span>SPFM／LFM 概念</h2>
+      <p class="lede">Part 5 用兩個硬體層級的指標描述整體安全性，理解概念就好，不需要背公式。</p>
+      <div class="note">
+        <p class="note-title">Single Point Fault Metric（SPFM）</p>
+        <p>衡量硬體中「單一個失效點一旦發生，就會直接違反安全目標、且沒有安全機制覆蓋」的比例有多低。這類失效點越少、或涵蓋它們的安全機制越完善，SPFM 越好。</p>
+      </div>
+      <div class="note">
+        <p class="note-title">Latent Fault Metric（LFM）</p>
+        <p>衡量「潛伏失效」——本身不會馬上讓系統違反安全目標、但會跟另一個失效組合起來才出事，而且平常不容易被駕駛人或系統察覺——有多少比例被偵測到，或透過駕駛人操作間接曝露出來。</p>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2 class="step">測驗：你讀懂了多少？</h2>
+      <p class="lede">作答完會立刻看到對錯、正解、解析與出處連結，並算出百分比。</p>
+      <div id="quizContainer"></div>
+    </section>
+  </main>
+</div>
+
+<footer class="site-footer">ISO 26262 學習網站 v1.0</footer>
+
+<script src="/assets/data/circles.js"></script>
+<script src="/assets/data/sources.js"></script>
+<script src="/assets/js/theme-toggle.js"></script>
+<script src="/assets/js/api-client.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/toc-scrollspy.js"></script>
+<script src="/assets/js/quiz-engine.js"></script>
+<script src="/assets/data/circle-05.quiz.js"></script>
+<script>
+  window.ISO26262Quiz.mount('quizContainer', 'circle-05-hardware-level-part5', window.ISO26262_QUIZ_CIRCLE_05);
+</script>
+</body>
+</html>

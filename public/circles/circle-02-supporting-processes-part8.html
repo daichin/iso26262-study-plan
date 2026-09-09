@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>支援流程 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/theme.css">
+</head>
+<body>
+<header id="app-header" data-current="circle-02-supporting-processes-part8"></header>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">第 2 圈・支援流程</p>
+    <h1>支援流程</h1>
+    <p class="standfirst">Part 8 Supporting processes — 變更管理、工具鑑定、軟體元件重用，這些是你每天寫 code 都會碰到、但常常不知道「為什麼要這樣做」的流程規範。</p>
+  </div>
+</header>
+
+<div class="shell shell-with-toc">
+  <nav class="index-toc" id="index" aria-label="目錄">
+    <h2>目錄</h2>
+    <button class="toc-toggle" id="tocToggle" aria-expanded="false">☰ 目錄</button>
+    <ol id="tocList">
+      <li><a href="#overview"><span class="n">－</span><span>總覽</span></a></li>
+      <li><a href="#config-change"><span class="n">1</span><span>組態與變更管理</span></a></li>
+      <li><a href="#verification"><span class="n">2</span><span>驗證與文件化</span></a></li>
+      <li><a href="#tool-qualification"><span class="n">3</span><span>工具信心等級</span></a></li>
+      <li><a href="#component-qualification"><span class="n">4</span><span>元件與測試工具鑑定</span></a></li>
+      <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2 class="step">總覽</h2>
+      <p class="lede">ISO 26262-8 不是「軟體怎麼寫」，而是「整個安全生命週期共用的流程骨架」。這些流程平常感覺像行政作業，但它們存在的理由都很具體：讓每一個決定都能被追溯、讓工具鏈本身不會變成安全的破口。</p>
+      <div class="note">
+        <p class="note-title">為什麼軟韌體工程師要懂這部分</p>
+        <p>Part 6（軟體開發）定義「要做什麼」，Part 8 定義「怎麼做才算數」。你交付的程式碼要進安全案例（safety case），走的就是 Part 8 的組態管理、變更管理與驗證規則。</p>
+      </div>
+    </section>
+
+    <section id="config-change">
+      <h2 class="step"><span class="num">1</span>組態與變更管理</h2>
+      <p>Configuration management（組態管理）要求每一份會影響安全的產出物——原始碼、需求文件、測試案例、工具版本——都要能被唯一識別、版本化、並且可以重現。這也是為什麼安全專案對「這次建置用的到底是哪個 commit、哪個編譯器版本」要求得比一般專案嚴格得多。</p>
+
+      <h3>Change management 的核心邏輯</h3>
+      <p>任何要改動已發布的安全相關產出物，都要先做 <b>impact analysis（影響分析）</b>：這個改動會不會波及已經完成驗證的其他部分？需不需要重新跑哪些測試、重新做哪些安全分析？只有分析完、決定好影響範圍，才能核准變更並執行。</p>
+
+      <ol class="steps">
+        <li>提出變更請求，說明動機與預期影響範圍。</li>
+        <li>進行 impact analysis：對照需求追溯矩陣，找出所有受影響的需求、設計、測試案例。</li>
+        <li>核准變更，決定需要重新驗證的項目。</li>
+        <li>執行變更、更新受影響的產出物與追溯關係。</li>
+        <li>重新驗證，並更新變更紀錄。</li>
+      </ol>
+
+      <div class="note warn">
+        <p class="note-title">常見誤解</p>
+        <p>「只改了一行 log 訊息，應該不用跑 impact analysis 吧」——即使是看似無害的修改，流程上仍然要走過影響分析這一步，差別只在於分析結論可能是「影響範圍極小」。省略分析本身，才是違反流程的地方。</p>
+      </div>
+    </section>
+
+    <section id="verification">
+      <h2 class="step"><span class="num">2</span>驗證與文件化</h2>
+      <p>Part 8 定義了一組跨全生命週期共用的驗證方法：walkthrough（走查）、inspection（正式審查）、以及各種 review。等級越高的 ASIL，對驗證方法的獨立性與嚴謹度要求也越高——例如高 ASIL 的 code review 會要求審查者跟作者不是同一人，甚至要求跨團隊審查。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>方法</th><th>特性</th><th>常見用途</th></tr></thead>
+          <tbody>
+            <tr><td>Walkthrough</td><td>作者主導講解，較非正式</td><td>設計早期快速對齊理解</td></tr>
+            <tr><td>Review</td><td>有結構、有紀錄，但不一定要求獨立審查者</td><td>一般 code review</td></tr>
+            <tr><td>Inspection</td><td>最正式，要求獨立審查者、明確準則、缺陷紀錄</td><td>高 ASIL 的關鍵產出物審查</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Documentation（文件化）要求每一份產出物都要有明確的目的、讀者、以及跟其他文件的追溯關係。這不是為了製造紙本作業，而是讓稽核者、甚至未來的你自己，能重建「這個決定當初是怎麼做出來的」。</p>
+    </section>
+
+    <section id="tool-qualification">
+      <h2 class="step"><span class="num">3</span>工具信心等級（Confidence in the use of software tools）</h2>
+      <p class="lede">這是韌體工程師最常忽略、卻最容易踩雷的一條：你用的編譯器、靜態分析工具、甚至 IDE，理論上都可能因為自身的錯誤而讓不安全的程式碼被誤判為安全。Part 8 用一套流程決定「這個工具需不需要額外做鑑定」。</p>
+
+      <figure>
+        <svg viewBox="0 0 900 430" role="img" aria-label="工具信心等級判定流程：先判斷 Tool Impact，再判斷 Tool error Detection，兩者共同決定 TCL1 到 TCL3">
+          <defs>
+            <marker id="tq-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+            <marker id="tq-ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0F6079"/>
+            </marker>
+          </defs>
+
+          <rect x="20" y="20" width="330" height="100" rx="10" fill="none" stroke="#0F6079" stroke-width="2"/>
+          <g font-family="Noto Sans TC, sans-serif" fill="currentColor">
+            <text x="185" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#0F6079">TI 判定（Tool Impact）</text>
+            <text x="185" y="68" text-anchor="middle" font-size="11">工具的錯誤輸出，是否可能造成</text>
+            <text x="185" y="86" text-anchor="middle" font-size="11">安全相關產品違反安全需求，</text>
+            <text x="185" y="104" text-anchor="middle" font-size="11">且無法被其他方式偵測或防止？</text>
+          </g>
+
+          <path d="M350,50 H430" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#tq-ah)"/>
+          <text x="390" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">否 TI2</text>
+          <rect x="440" y="20" width="220" height="60" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="550" y="46" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="13" font-weight="700">TCL 1</text>
+          <text x="550" y="66" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11">不需要工具鑑定</text>
+
+          <path d="M185,120 V160" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#tq-ah)"/>
+          <text x="230" y="145" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">是 TI1</text>
+
+          <rect x="20" y="168" width="330" height="110" rx="10" fill="none" stroke="#0F6079" stroke-width="2"/>
+          <g font-family="Noto Sans TC, sans-serif" fill="currentColor">
+            <text x="185" y="194" text-anchor="middle" font-size="13" font-weight="700" fill="#0F6079">TD 判定（Tool error Detection）</text>
+            <text x="185" y="216" text-anchor="middle" font-size="11">對於工具產生錯誤輸出這件事，</text>
+            <text x="185" y="234" text-anchor="middle" font-size="11">有多大信心能被其他方式</text>
+            <text x="185" y="252" text-anchor="middle" font-size="11">偵測或防止？（高／中／低）</text>
+          </g>
+
+          <path d="M350,198 H430" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#tq-ah)"/>
+          <text x="390" y="190" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">TD1 高</text>
+          <rect x="440" y="168" width="220" height="60" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="550" y="194" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="13" font-weight="700">TCL 1</text>
+          <text x="550" y="214" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11">不需要工具鑑定</text>
+
+          <path d="M350,255 H430" fill="none" stroke="#A65A00" stroke-width="1.5" marker-end="url(#tq-ah)"/>
+          <text x="390" y="247" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#A65A00">TD2 中</text>
+          <rect x="440" y="240" width="260" height="60" rx="9" fill="none" stroke="#A65A00" stroke-width="1.8"/>
+          <text x="570" y="266" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="13" font-weight="700" fill="#A65A00">TCL 2</text>
+          <text x="570" y="286" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11">需要鑑定措施</text>
+
+          <path d="M185,278 V330" fill="none" stroke="#A32D22" stroke-width="1.5" marker-end="url(#tq-ah)"/>
+          <text x="230" y="315" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#A32D22">TD3 低</text>
+          <rect x="60" y="338" width="290" height="60" rx="9" fill="none" stroke="#A32D22" stroke-width="1.8"/>
+          <text x="205" y="364" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="13" font-weight="700" fill="#A32D22">TCL 3</text>
+          <text x="205" y="384" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11">需要更嚴謹的鑑定措施</text>
+        </svg>
+        <figcaption><b>TCL（Tool Confidence Level）由 TI 與 TD 兩個判斷共同決定。</b>TCL1 不需要額外鑑定；TCL2、TCL3 則要依 ASIL 等級選擇合適的鑑定方法——常見的是「使用經驗增加信心」「評估工具開發流程」「工具驗證」，或直接依安全標準開發這個工具。</figcaption>
+      </figure>
+
+      <div class="note warn">
+        <p class="note-title">為什麼不能隨便升級編譯器版本</p>
+        <p>如果編譯器被判定為 TCL2 以上，代表團隊曾經針對「這一個版本」做過鑑定措施。換一個新版本，理論上等於換了一個新工具，需要重新評估鑑定是否仍然成立——這也是安全專案往往鎖定特定編譯器版本、不隨便跟進最新版的原因。</p>
+      </div>
+    </section>
+
+    <section id="component-qualification">
+      <h2 class="step"><span class="num">4</span>元件與測試工具鑑定</h2>
+      <p><b>Qualification of software components（軟體元件鑑定）</b>：如果你要重用一個既有的軟體元件（例如某個現成的 RTOS、通訊協定堆疊、或第三方函式庫），且這個元件當初不是照 ISO 26262 開發出來的，就需要透過鑑定手段（例如：既有的使用記錄、額外測試、白箱分析）來建立對它的信心，而不能直接假設「大家都在用所以一定沒問題」。</p>
+      <p><b>Qualification of software test tools（軟體測試工具鑑定）</b>：邏輯跟工具信心等級類似，但專門針對測試工具本身——如果測試工具本身有問題導致漏掉一個本該被抓到的錯誤，那測試結果就不可信，因此測試工具也需要視情況鑑定。</p>
+
+      <div class="tabmap">
+        <div><b>重用 RTOS / driver</b><span>需要元件鑑定：使用記錄、額外測試或分析建立信心</span></div>
+        <div><b>換編譯器 / 靜態分析工具版本</b><span>需要重新檢視 TCL 判定是否仍然成立</span></div>
+        <div><b>自動化測試框架本身</b><span>需要測試工具鑑定，避免測試結果本身不可信</span></div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2 class="step">測驗：你讀懂了多少？</h2>
+      <p class="lede">作答完會立刻看到對錯、正解、解析與出處連結，並算出百分比。</p>
+      <div id="quizContainer"></div>
+    </section>
+  </main>
+</div>
+
+<footer class="site-footer">ISO 26262 學習網站 v1.0</footer>
+
+<script src="/assets/data/circles.js"></script>
+<script src="/assets/data/sources.js"></script>
+<script src="/assets/js/theme-toggle.js"></script>
+<script src="/assets/js/api-client.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/toc-scrollspy.js"></script>
+<script src="/assets/js/quiz-engine.js"></script>
+<script src="/assets/data/circle-02.quiz.js"></script>
+<script>
+  window.ISO26262Quiz.mount('quizContainer', 'circle-02-supporting-processes-part8', window.ISO26262_QUIZ_CIRCLE_02);
+</script>
+</body>
+</html>
