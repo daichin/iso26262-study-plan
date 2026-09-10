@@ -27,9 +27,11 @@
     <ol id="tocList">
       <li><a href="#overview"><span class="n">－</span><span>為什麼先讀地圖</span></a></li>
       <li><a href="#vocabulary"><span class="n">1</span><span>關鍵詞彙</span></a></li>
-      <li><a href="#structure"><span class="n">2</span><span>十二個 Part 的地圖</span></a></li>
-      <li><a href="#guideline"><span class="n">3</span><span>Part 10 的角色</span></a></li>
-      <li><a href="#reading-order"><span class="n">4</span><span>建議閱讀順序</span></a></li>
+      <li><a href="#confusions"><span class="n">2</span><span>最容易搞混的幾組詞</span></a></li>
+      <li><a href="#structure"><span class="n">3</span><span>十二個 Part 的地圖</span></a></li>
+      <li><a href="#guideline"><span class="n">4</span><span>Part 10 的角色</span></a></li>
+      <li><a href="#reading-order"><span class="n">5</span><span>建議閱讀順序</span></a></li>
+      <li><a href="#sources"><span class="n">§</span><span>本章出處</span></a></li>
       <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
     </ol>
   </nav>
@@ -37,31 +39,74 @@
   <main>
     <section id="overview">
       <h2 class="step">為什麼先讀地圖</h2>
-      <p class="lede">ISO 26262 全套有 12 個 Part，直接從自己工作相關的 Part 6 讀起，很容易碰到看不懂的名詞、不知道某個需求從哪裡冒出來。先花一點時間建立共同語言與整體地圖，後面每一圈讀起來都會快很多。</p>
+      <p class="lede">ISO 26262 全套有 12 個 Part<a class="cite" data-src="iso26262_overview"></a>，直接從自己工作相關的 Part 6 讀起，很容易碰到看不懂的名詞、不知道某個需求從哪裡冒出來。先花一點時間建立共同語言與整體地圖，後面每一圈讀起來都會快很多。</p>
+
+      <h3>讀不懂條文，通常不是英文的問題</h3>
+      <p>大多數工程師第一次翻開 ISO 26262 的挫折感，來自兩件事。第一，標準裡的日常英文單字幾乎都被重新定義過：fault、error、failure 在口語裡可以互換，在標準裡卻是三個有先後因果關係的不同概念；verification 和 validation 在中文都翻成「驗證」，在標準裡卻是兩件不同時機、不同對象的活動。你以為自己看懂了，其實是用日常語感在猜。</p>
+      <p>第二，標準是一份高度交叉引用的文件。Part 6 會直接使用「technical safety requirement」而不解釋它從哪來，因為那是 Part 4 的產物；會要求你確保 freedom from interference，但判定準則寫在 Part 9。不知道整體結構的情況下讀單一 Part，會不斷撞到「這個東西為什麼會在這裡」的斷點。</p>
+      <p>這一圈要解決的就是這兩件事：Part 1 給你精確的詞彙定義<a class="cite" data-src="iso26262_part1"></a>，Part 10 給你整體結構的導覽<a class="cite" data-src="iso26262_part10"></a>。花半天到一天讀完，會省下後面好幾週的困惑。</p>
+
+      <h3>順便建立一個背景認知</h3>
+      <p>ISO 26262 不是憑空出現的，它是通用功能安全標準 IEC 61508 針對道路車輛電子電氣系統做的產業特化版本<a class="cite" data-src="iec61508_hub"></a>。這解釋了為什麼標準的骨架是「安全生命週期」而不是「某種開發流程」，也解釋了 ASIL 這種分級概念的來源（對應 IEC 61508 的 SIL）。2018 年的第二版做了大幅改版，適用範圍也從原本的乘用車擴大到道路車輛（機車另有 Part 12 的調整規定）<a class="cite" data-src="iso26262_part12"></a>。</p>
+
       <div class="note">
         <p class="note-title">這一圈的目標</p>
-        <p>讀完這一圈，你應該能：看懂 ASIL、safety goal、HARA 這類詞彙的精確定義；知道 12 個 Part 大致分成哪幾類；知道自己接下來該照什麼順序讀下去。</p>
+        <p>讀完這一圈，你應該能：看懂 ASIL、safety goal、HARA 這類詞彙的精確定義；分辨 fault / error / failure 與 verification / validation 的差別；知道 12 個 Part 大致分成哪幾類、彼此怎麼引用；知道自己接下來該照什麼順序讀下去。</p>
       </div>
     </section>
 
     <section id="vocabulary">
       <h2 class="step">關鍵詞彙</h2>
       <p class="lede">這些詞彙會在之後每一圈反覆出現，先弄懂精確定義，之後看文件才不會靠猜的。</p>
+
+      <h3>為什麼標準要自己定義一本字典</h3>
+      <p>值得注意的是，Part 1 是規範性（normative）的內容，不是附在後面參考用的名詞解釋<a class="cite" data-src="iso26262_part1"></a>。也就是說，當某條需求說「應該在 element 層級做某件事」，element 是什麼有精確定義，不是任你解釋的模糊詞。安全論證（safety case）之所以能被第三方稽核，前提就是雙方對每個名詞的理解一致；審查會議上最常見的爭論，往往不是技術對錯，而是雙方對同一個詞的定義不同。</p>
+
       <div class="table-wrap">
         <table>
           <thead><tr><th>詞彙</th><th>中文說明</th></tr></thead>
           <tbody>
-            <tr><td><code>ASIL</code></td><td>Automotive Safety Integrity Level，依 Severity（嚴重度）、Exposure（暴露度）、Controllability（可控性）三個構面組合判定出的風險等級，由低到高分為 QM、A、B、C、D。</td></tr>
-            <tr><td><code>Item</code></td><td>功能安全分析所定義的最小分析對象，一個在車輛層級定義的系統或功能，是 HARA 分析的起點。</td></tr>
-            <tr><td><code>Hazard</code></td><td>可能因系統異常行為（malfunctioning behaviour）而導致傷害的潛在危害來源。</td></tr>
-            <tr><td><code>HARA</code></td><td>Hazard Analysis and Risk Assessment，辨識 item 的危害情境、評估風險，並據以訂出 safety goal 與 ASIL 的分析活動。</td></tr>
-            <tr><td><code>Safety Goal</code></td><td>HARA 分析後，針對每個危害情境訂出的最高層級安全目標，之後會逐層分解成更具體的安全需求。</td></tr>
+            <tr><td><code>Item</code></td><td>功能安全分析的最上層對象：在車輛層級定義的一個系統或功能組合，是 HARA 分析的起點。定義 item 的邊界（包含什麼、不包含什麼、跟外界的介面）是概念階段的第一件事。</td></tr>
+            <tr><td><code>Element</code></td><td>泛稱：系統、元件、硬體零件或軟體單元都算 element。標準常用這個字來寫「不限層級」的通用要求。</td></tr>
+            <tr><td><code>Software Unit</code></td><td>軟體架構分解到最底層、不再往下拆的原子單位，是單元設計與單元驗證的對象。</td></tr>
+            <tr><td><code>Fault</code></td><td>異常狀態本身，可能導致 element 失效。例如某個 RAM bit 被宇宙射線翻轉、某顆焊點裂了。</td></tr>
+            <tr><td><code>Error</code></td><td>計算值／觀測值與正確值之間的偏差。fault 被觸發後產生 error，例如翻轉的那個 bit 剛好被讀出來，算出錯誤的扭矩值。</td></tr>
+            <tr><td><code>Failure</code></td><td>element 無法再依需求執行其功能。error 傳播出去、影響到對外行為，就成為 failure。</td></tr>
+            <tr><td><code>Malfunctioning Behaviour</code></td><td>item 的行為偏離設計意圖，可能造成危害。HARA 分析的就是這種行為在特定情境下的風險。</td></tr>
+            <tr><td><code>Hazard</code></td><td>可能因異常行為而導致傷害的潛在危害來源。注意 hazard 本身是「來源」，要搭配駕駛情境（operational situation）才構成危害事件。</td></tr>
+            <tr><td><code>HARA</code></td><td>Hazard Analysis and Risk Assessment，辨識危害事件、以 S/E/C 三構面評估風險，並據以訂出 safety goal 與 ASIL 的分析活動<a class="cite" data-src="iso26262_part3"></a>。</td></tr>
+            <tr><td><code>ASIL</code></td><td>Automotive Safety Integrity Level，依 Severity（嚴重度）、Exposure（暴露度）、Controllability（可控性）組合判定出的等級，由低到高為 A、B、C、D；不需要套用 ISO 26262 安全要求的則標為 QM。</td></tr>
+            <tr><td><code>QM</code></td><td>Quality Management。代表「依一般品質管理流程處理即可，不需額外套用本標準的安全要求」，<b>不是</b>「沒有任何要求」，更不是「可以隨便做」。</td></tr>
+            <tr><td><code>Safety Goal</code></td><td>HARA 之後針對每個危害事件訂出的最高層級安全需求，本身帶有 ASIL 等級，之後逐層分解成更具體的需求。</td></tr>
             <tr><td><code>Safety Requirement</code></td><td>安全目標逐層分解出的需求，依層級分為 Functional／Technical／Software／Hardware Safety Requirement。</td></tr>
-            <tr><td><code>Safety Mechanism</code></td><td>用來偵測或緩解故障、把系統帶往安全狀態的技術方案，例如看門狗、CRC 校驗。</td></tr>
-            <tr><td><code>Freedom from Interference</code></td><td>確保不同 ASIL（或含 QM）等級的軟體元件在同一硬體上執行時，彼此不會互相干擾對方的正確運作。</td></tr>
-            <tr><td><code>Confirmation Measure</code></td><td>confirmation review、audit、assessment 等活動的統稱，用來確認安全流程有被正確執行。</td></tr>
+            <tr><td><code>Safety Mechanism</code></td><td>用來偵測或緩解故障、把系統帶往安全狀態的技術方案，例如看門狗、CRC 校驗、範圍檢查。你在韌體裡寫的診斷程式碼，大多屬於這一類。</td></tr>
+            <tr><td><code>Safe State</code></td><td>偵測到故障後，系統要進入的、不會造成不合理風險的運作模式。可能是降級運作、警示駕駛，或安全地關閉功能——不見得等於「關掉」。</td></tr>
+            <tr><td><code>Freedom from Interference</code></td><td>確保不同 ASIL（或含 QM）等級的軟體元件在同一硬體上執行時，不會經由記憶體、時序或交換資訊互相干擾<a class="cite" data-src="iso26262_part9"></a>。</td></tr>
+            <tr><td><code>Confirmation Measure</code></td><td>confirmation review、functional safety audit、functional safety assessment 的統稱，用來確認安全流程有被正確執行，屬於管理層面的要求<a class="cite" data-src="iso26262_part2"></a>。</td></tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <section id="confusions">
+      <h2 class="step">最容易搞混的幾組詞</h2>
+      <p class="lede">以下這幾組，是實務上最常在審查會議、需求文件、缺陷報告裡被混用，進而造成溝通成本的詞。先把界線劃清楚。</p>
+
+      <h3>Fault → Error → Failure：一條因果鏈，不是同義詞</h3>
+      <p>這三個字在口語裡都可以說成「壞了」，但在標準裡是有方向性的三段：fault 是潛伏的異常狀態，被觸發後產生 error（值錯了），error 若傳播到 element 的對外行為，就成為 failure。理解這條鏈的實益很直接——安全機制的設計目標，就是在這條鏈上盡早攔截。你在韌體裡加一段感測器合理性檢查，攔的是 error，讓它不要變成 failure；ECC 記憶體攔的是 fault，讓它根本不產生 error。討論「這個機制擋在哪一段」時，用錯詞就會雞同鴨講。</p>
+
+      <h3>Verification vs. Validation：問題不同</h3>
+      <p>verification 問的是「有沒有正確地把東西做出來」——實作是否滿足了它上一層的需求，逐層對應（單元驗證對單元設計、整合驗證對架構設計）。validation 問的是「做出來的東西對不對」——在車輛層級確認 safety goal 本身是否適當、是否真的達成了。中文都叫「驗證」，但一個對照的是規格，一個對照的是原始的安全意圖。單元測試全過、覆蓋率漂亮，只代表 verification 做得好，不保證當初的 safety goal 訂得對。</p>
+
+      <h3>Item / Element / Component / Software Unit：層級不同</h3>
+      <p>這組是層級用語。item 是車輛層級的分析對象（例如「電動助力轉向系統」），element 是不限層級的泛稱，software unit 則是軟體分解到底的原子單位。看條文時留意主詞是哪一個，就知道這條要求是落在整車、系統，還是你手上那個 .c 檔。</p>
+
+      <h3>Safety Goal 也是一種 Safety Requirement</h3>
+      <p>常見的誤解是把 safety goal 和 safety requirement 當成兩種東西。其實 safety goal 就是最頂層的那一條 safety requirement，由 HARA 直接產出、帶著 ASIL；之後往下分解出的 functional / technical / software safety requirement 都繼承自它。你手上那條軟體需求的 ASIL 是哪來的？往上追，最終會追到某一條 safety goal。</p>
+
+      <div class="note warn">
+        <p class="note-title">⚠ QM 不等於「不用管」</p>
+        <p>被判定為 QM 的功能，只是不需要套用 ISO 26262 的安全要求，仍然要按公司正常的品質流程開發。更重要的是：QM 元件如果跟高 ASIL 元件跑在同一顆 MCU 上，要嘛證明彼此 freedom from interference，要嘛整包被拉到同一個 ASIL 等級處理<a class="cite" data-src="iso26262_part9"></a>。「這塊是 QM，隨便寫沒關係」是實務上很貴的誤解。</p>
       </div>
     </section>
 
@@ -115,26 +160,53 @@
           <text x="440" y="365" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="10.5" fill="currentColor" opacity=".75">貫穿全系列的共同語言</text>
         </svg>
       </figure>
+
+      <h3>三組 Part 各自的角色</h3>
+      <p><b>開發生命週期（Part 2～7）</b>是主軸，照時間順序走一遍：Part 2 管理整體安全流程與組織責任<a class="cite" data-src="iso26262_part2"></a>；Part 3 在概念階段定義 item、做 HARA、訂出 safety goal<a class="cite" data-src="iso26262_part3"></a>；Part 4 在系統層把需求拆解、分配給硬體與軟體<a class="cite" data-src="iso26262_part4"></a>；Part 5 與 Part 6 分別是硬體與軟體的開發要求<a class="cite" data-src="iso26262_part6"></a>；Part 7 則涵蓋量產之後的生產、運作、維修與除役。</p>
+      <p><b>支援與分析（Part 8、9）</b>是橫向的：Part 8 的支援流程（組態管理、變更管理、文件、工具鑑定、軟體元件重用）在每個開發階段都會用到<a class="cite" data-src="iso26262_part8"></a>；Part 9 提供跨層級的分析方法，包含 ASIL decomposition、元件共存準則、相依失效分析。這兩個 Part 不屬於某個時間點，而是貫穿整條線。</p>
+      <p><b>資訊性附則（Part 10～12）</b>不含強制要求：Part 10 是整體導讀，Part 11 針對半導體提供應用指引<a class="cite" data-src="iso26262_part11"></a>，Part 12 則是機車的調整版本。</p>
+
+      <h3>哪些 Part 跟你直接相關</h3>
+      <p>對軟韌體工程師來說，Part 6 是工作本體、Part 8 是每天在遵守的流程規範、Part 9 在你處理混合 ASIL 或多核心分區時會直接踩到。Part 4 決定了你手上需求的來源，Part 5 決定了你要替硬體實作哪些診斷。Part 3 和 Part 2 比較偏上游與管理層，但決定了「為什麼這個功能是 ASIL D」這種你遲早會問的問題。Part 7 和 Part 12 除非工作內容相關，優先度可以最低。</p>
       <p class="lede">Part 1（詞彙）貫穿全系列，Part 10（導讀）則是資訊性的整體說明。這份學習規劃的第 1～6 圈，大致對應到上圖的核心開發生命週期與支援分析區塊。</p>
     </section>
 
     <section id="guideline">
       <h2 class="step">Part 10 的角色</h2>
-      <p class="lede">Part 10 是資訊性（informative）文件，不是強制要求，目的是幫助讀者理解其他 Part 之間的關係與整體邏輯。</p>
+      <p class="lede">Part 10 是資訊性（informative）文件，不是強制要求，目的是幫助讀者理解其他 Part 之間的關係與整體邏輯<a class="cite" data-src="iso26262_part10"></a>。</p>
+
+      <h3>「Informative」是什麼意思</h3>
+      <p>標準文件裡的內容分成規範性（normative）與資訊性（informative）兩種。規範性是要求，稽核時會被拿來對照；資訊性是說明與範例，幫助理解但不構成要求。Part 10 整份都是資訊性的——這代表你不會因為「沒照 Part 10 做」而不合規，但也代表它可以用比條文自由得多的方式說話：舉例、畫圖、解釋動機。對初學者來說，這反而是整套標準裡最好讀的一份。</p>
+
+      <h3>實務上怎麼用它</h3>
+      <p>Part 10 的價值在於它會解釋「為什麼」。條文只會告訴你某個階段要產出什麼、要做哪些驗證，不會告訴你這個要求想防的是什麼失效模式。當你讀 Part 6 讀到某條要求覺得莫名其妙時，回頭在 Part 10 找對應的說明，通常能找到那條要求背後的意圖。</p>
       <div class="note good">
         <p class="note-title">✓ 怎麼用 Part 10</p>
-        <p>把它當成「非官方但官方寫的」教科書：每次要切換到一個新的 Part 之前，先回來看 Part 10 對應章節的說明，再進去讀正文，會比直接硬啃條文輕鬆很多。</p>
+        <p>把它當成「非官方但官方寫的」教科書：每次要切換到一個新的 Part 之前，先回來看 Part 10 對應章節的說明，再進去讀正文，會比直接硬啃條文輕鬆很多。如果預算有限只能先買幾份，Part 10 加上你工作直接相關的 Part 6，是投資報酬率最高的組合。</p>
       </div>
     </section>
 
     <section id="reading-order">
       <h2 class="step">建議閱讀順序</h2>
+      <p class="lede">同心圓的推進方式：先讀懂自己每天在做的事，再往外擴到會跟你交接、審查、討論的範圍。</p>
       <ol class="steps">
         <li>先讀完這一圈（Part 1 詞彙 + Part 10 導讀），建立地圖與共同語言。</li>
-        <li>接著讀第 1 圈 Part 6（軟體層開發），這是你的工作本體。</li>
+        <li>接著讀第 1 圈 Part 6（軟體層開發），這是你的工作本體，值得花最多時間。</li>
         <li>再讀第 2 圈 Part 8（支援流程），了解每天會碰到的變更管理、工具鑑定等規範。</li>
         <li>之後依序拓展到第 3～7 圈：Part 9 安全分析、Part 4 系統層、Part 5 硬體層、Part 2/3 概念與管理，最後是鄰近標準。</li>
       </ol>
+
+      <h3>為什麼不建議直接從 Part 6 開始</h3>
+      <p>直覺上「我是寫軟體的，那就讀 Part 6」看似最有效率，但 Part 6 幾乎每一節都在引用別的 Part 的產物。第一段就會出現 technical safety requirement 與 hardware-software interface，兩個都是 Part 4 的輸出；談架構時會要求 freedom from interference，判定準則在 Part 9；談工具時會指向 Part 8 的工具鑑定。沒有地圖就進去，會花大量時間在「這個名詞是什麼」而不是在理解要求本身。先花半天讀完這一圈，是省時間不是花時間。</p>
+
+      <h3>搭配公司內部文件一起讀</h3>
+      <p>標準本身寫得抽象，因為它要涵蓋所有車廠與所有供應商。真正規範你日常行為的，是公司內部把標準制度化之後的流程手冊。務必兩者對照著讀：標準告訴你「為什麼要有這個要求」，內部文件告訴你「在我們公司這件事具體怎麼做、用哪個工具、填哪份表」。只讀其中一邊，不是流於空泛，就是知其然不知其所以然。</p>
+    </section>
+
+    <section id="sources">
+      <h2 class="step">本章出處</h2>
+      <p class="lede">本章引用的標準與規範，點擊可直接前往官方頁面。標準本文為付費取得，連結指向官方目錄頁。</p>
+      <div id="chapterSources"></div>
     </section>
 
     <section id="quiz">
@@ -155,6 +227,7 @@
 <script src="/assets/js/toc-scrollspy.js"></script>
 <script src="/assets/js/quiz-engine.js"></script>
 <script src="/assets/data/circle-00.quiz.js"></script>
+<script src="/assets/js/citations.js"></script>
 <script>
   window.ISO26262Quiz.mount('quizContainer', 'circle-00-vocabulary-guideline', window.ISO26262_QUIZ_CIRCLE_00);
 </script>

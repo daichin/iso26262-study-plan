@@ -32,6 +32,7 @@
       <li><a href="#unit-verification"><span class="n">4</span><span>單元驗證</span></a></li>
       <li><a href="#integration"><span class="n">5</span><span>整合與驗證</span></a></li>
       <li><a href="#vmodel"><span class="n">6</span><span>V-model 全景</span></a></li>
+      <li><a href="#sources"><span class="n">§</span><span>本章出處</span></a></li>
       <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
     </ol>
   </nav>
@@ -39,16 +40,35 @@
   <main>
     <section id="overview">
       <h2 class="step">總覽</h2>
-      <p class="lede">Part 6 是整套標準裡，跟你日常工作最直接相關的部分。這一圈會花最多時間，因為它幾乎就是在講「軟體要怎麼開發才算合規」。</p>
+      <p class="lede">Part 6 是整套標準裡，跟你日常工作最直接相關的部分<a class="cite" data-src="iso26262_part6"></a>。這一圈會花最多時間，因為它幾乎就是在講「軟體要怎麼開發才算合規」。</p>
+
+      <h3>Part 6 在整條鏈上的位置</h3>
+      <p>Part 6 不是從零開始的。它的輸入是系統層（Part 4）已經拆解好、並且分配給軟體的那些 technical safety requirement，以及一份 hardware-software interface（HSI）規格<a class="cite" data-src="iso26262_part4"></a>。它的輸出則是通過驗證的軟體，再交回系統層做整合與最終的安全驗證。換句話說，Part 6 管的是這條鏈中間的一段，前後都有接口。</p>
+      <p>知道這件事有個直接的實益：當你覺得某條軟體需求「寫得莫名其妙」或「根本做不到」時，正確的動作通常不是自己想辦法硬幹，而是往上追到它對應的 technical safety requirement，跟系統工程師討論這條需求的分配是否合理。需求分配本來就是可以回頭調整的設計決策。</p>
+
+      <h3>一個關鍵心態</h3>
+      <p>初次接觸的工程師最常見的誤解，是把 ISO 26262 當成「寫完程式之後要額外補的一堆文件」。實際上 Part 6 規範的是開發方式本身：需求怎麼寫、架構怎麼分、程式碼要遵守什麼限制、測試要做到什麼程度、每一項之間怎麼追溯。文件是這些活動的自然產出，不是事後補的作業。把它當成事後補件來做，不但痛苦，而且通常補不出來——因為追溯關係在當初沒有建立，事後無法憑空生出。</p>
+
       <div class="note">
         <p class="note-title">實務建議</p>
-        <p>如果公司內部有既有的 ASIL C/D 專案的 SW 架構文件或測試計畫，找一份來對照著這一圈的內容讀，會比空讀條文有效率很多。</p>
+        <p>如果公司內部有既有的 ASIL C/D 專案的 SW 架構文件或測試計畫，找一份來對照著這一圈的內容讀，會比空讀條文有效率很多。你會很快看出哪些是標準要求、哪些是公司自己加上去的內部規範。</p>
       </div>
     </section>
 
     <section id="requirements">
       <h2 class="step">軟體安全需求</h2>
-      <p class="lede">Software Safety Requirements 不是憑空寫出來的，而是從系統層的 Technical Safety Requirements（見第 4 圈 Part 4）分解、分配到軟體之後，進一步具體化而來。</p>
+      <p class="lede">Software Safety Requirements 不是憑空寫出來的，而是從系統層的 Technical Safety Requirements（見第 4 圈 Part 4）分解、分配到軟體之後，進一步具體化而來<a class="cite" data-src="iso26262_part4"></a>。</p>
+
+      <h3>需求從哪裡來</h3>
+      <p>完整的鏈條是：HARA 產出 safety goal（帶 ASIL）→ 分解成 functional safety requirement → 在系統設計中細化成 technical safety requirement → 分配給硬體或軟體 → 成為 software safety requirement。你手上的每一條軟體安全需求，理論上都能沿著這條鏈往上追到某一條 safety goal，也因此繼承了它的 ASIL 等級。</p>
+      <p>除了功能本身，軟體安全需求還要涵蓋一些容易被忽略的面向：系統在各種運作模式與狀態轉換時軟體該有的行為、故障偵測後要進入的安全狀態、以及 HSI 規格中屬於軟體這一側的責任（例如某個暫存器的初始化順序、某個診斷訊號的更新週期）。這些常常不會出現在功能規格書裡，卻是安全需求的一部分。</p>
+
+      <h3>一條「可驗證」的需求長什麼樣</h3>
+      <p>標準要求需求必須是可驗證的，這在實務上是最常被退件的一點。差別很具體：「軟體應快速偵測感測器故障」無法驗證——多快叫快？怎麼算故障？相對地，「當扭矩感測器的兩路訊號差值連續超過 X 個取樣週期都大於 Y%，軟體應在 Z 毫秒內將輸出扭矩限制到安全範圍並設置故障旗標」就可以直接設計出測試案例。可驗證性的判準很簡單：讀完這條需求，能不能直接寫出通過／不通過的判定條件。</p>
+
+      <h3>追溯性為什麼是硬需求</h3>
+      <p>追溯性（traceability）不是為了文件好看。它要支撐三件實際的事：第一，變更影響分析——當某條 technical safety requirement 改了，你要能立刻列出受影響的軟體單元與測試案例<a class="cite" data-src="iso26262_part8"></a>；第二，驗證完整性——證明每一條需求都有對應的測試，且每個測試都對應到某條需求；第三，安全論證——稽核時要能展示從 safety goal 到程式碼的完整鏈路。這三件事只要缺了追溯關係，就得靠人腦與記憶硬撐，專案一大就必然出錯。</p>
+
       <ul class="plain">
         <li>需求必須維持可追溯性：能回頭找到它對應到哪一條 Technical Safety Requirement、哪一個 Safety Goal。</li>
         <li>需求要寫得可驗證——能被明確的測試方法證明有沒有達成，模糊的敘述無法通過安全需求審查。</li>
@@ -58,42 +78,83 @@
 
     <section id="architecture">
       <h2 class="step">軟體架構設計</h2>
-      <p class="lede">架構設計階段決定軟體要怎麼分層、怎麼模組化，直接影響之後測試與維護的難度。</p>
+      <p class="lede">架構設計階段決定軟體要怎麼分層、怎麼模組化，直接影響之後測試與維護的難度<a class="cite" data-src="iso26262_part6"></a>。</p>
+
+      <h3>靜態與動態兩個面向</h3>
+      <p>架構設計要同時描述兩件事。靜態面：有哪些軟體元件、彼此的階層關係、資料與控制介面。動態面：這些元件在執行時期怎麼互動——任務怎麼排程、優先權如何、中斷如何處理、資料在哪些時間點被誰讀寫。韌體工程師常把重心放在靜態結構，但安全相關的問題（競態、優先權反轉、時序超出預算）幾乎都出在動態面，架構文件若只畫了模組方塊圖而沒描述時序行為，通常會在審查時被要求補齊。</p>
+
+      <h3>幾個設計原則，以及它們各自在防什麼</h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>原則</th><th>說明</th></tr></thead>
+          <thead><tr><th>原則</th><th>說明</th><th>實際在防什麼</th></tr></thead>
           <tbody>
-            <tr><td>模組化 / 階層化</td><td>限制模組間耦合、控制複雜度，讓每個模組容易獨立理解與測試。</td></tr>
-            <tr><td>Defensive programming</td><td>對輸入值、介面呼叫做合理性檢查，預期並處理非預期的情況，而不是假設輸入永遠正確。</td></tr>
-            <tr><td>Freedom from interference</td><td>混合 ASIL（或含 QM）的軟體元件共用同一硬體時，架構要能保證彼此不互相干擾（詳見第 3 圈 Part 9）。</td></tr>
-            <tr><td>可支援的表示法</td><td>依 ASIL 等級不同，架構設計建議採用的表示法（如結構化圖示、正式化程度）嚴謹度也不同。</td></tr>
+            <tr><td>模組化 / 階層化</td><td>限制模組間耦合、控制複雜度，讓每個模組容易獨立理解與測試。</td><td>降低改 A 壞 B 的機率，也讓單元測試有辦法隔離出來寫。</td></tr>
+            <tr><td>Defensive programming</td><td>對輸入值、介面呼叫做合理性檢查，預期並處理非預期的情況，而不是假設輸入永遠正確。</td><td>攔截來自其他模組或硬體的 error，避免它傳播成 failure。</td></tr>
+            <tr><td>Freedom from interference</td><td>混合 ASIL（或含 QM）的軟體元件共用同一硬體時，架構要能保證彼此不互相干擾（詳見第 3 圈 Part 9）<a class="cite" data-src="iso26262_part9"></a>。</td><td>防止 QM 模組的野指標寫壞 ASIL D 模組的資料，或吃掉它的 CPU 時間。</td></tr>
+            <tr><td>限制中斷與動態行為</td><td>謹慎使用中斷、避免不受控的動態記憶體配置與遞迴。</td><td>讓時序與資源使用量可以被靜態分析與預估，而不是執行時才發現爆掉。</td></tr>
+            <tr><td>可支援的表示法</td><td>依 ASIL 等級不同，架構設計建議採用的表示法（如結構化圖示、半形式化程度）嚴謹度也不同。</td><td>降低架構描述被誤讀的空間，ASIL 越高越傾向半形式化表示。</td></tr>
           </tbody>
         </table>
       </div>
+
+      <h3>為什麼架構階段就要把測試想進去</h3>
+      <p>單元驗證的可行性，在架構設計時就已經被決定了。一個把硬體暫存器存取、控制邏輯、通訊協定全部揉在同一個函式裡的設計，之後不可能寫出乾淨的單元測試——你得先把硬體 mock 掉，但介面根本沒有切出來。相對地，如果架構把硬體抽象層獨立出來，控制邏輯就能在 host 上單獨測試。所以「這個模組要怎麼測」應該是架構評審的問題之一，而不是等到測試階段才發現代價很高。</p>
+
+      <h3>Freedom from interference 在架構上的意義</h3>
+      <p>如果專案裡混有不同 ASIL 等級的元件（幾乎所有實際專案都是如此），架構就要明確回答：它們之間如何做到互不干擾。通常會落在三個面向——記憶體（用 MPU 做分區保護，防止越權寫入）、時序與執行（防止低優先權模組餓死高 ASIL 任務、看門狗監控執行時序）、交換資訊（訊息的正確性與時效性檢查，例如 CRC 與計數器）。這三個面向的判定準則寫在 Part 9<a class="cite" data-src="iso26262_part9"></a>，AUTOSAR 平台則提供了記憶體分區與 E2E 保護等對應機制<a class="cite" data-src="autosar"></a>。</p>
     </section>
 
     <section id="unit-design">
       <h2 class="step">單元設計與實作</h2>
       <p class="lede">這是你每天實際在做的事：依編碼準則寫程式碼、跑靜態分析、接受程式碼審查。</p>
+
+      <h3>編碼準則到底在限制什麼</h3>
+      <p>ISO 26262 要求採用編碼準則，但沒有規定用哪一套<a class="cite" data-src="iso26262_part6"></a>。標準關心的是準則要涵蓋哪些主題：強制的初始化、限制或禁止動態記憶體配置、避免遞迴、限制指標運算、避免隱含型別轉換、限制單一函式的大小與複雜度、以及使用語言子集排除定義不明確（undefined / unspecified behaviour）的用法。</p>
+      <p>這些限制背後有共同的邏輯：讓程式的行為可以被靜態推理。動態配置在執行時可能失敗、遞迴的堆疊深度無法靜態估算、隱含轉換會產生你沒預期的截斷——這些都讓「這段程式不會出事」變成無法證明的主張。安全相關軟體不追求語言特性的表達力，追求的是可預測性。</p>
+
       <ol class="steps">
-        <li>採用限制語言中容易出錯用法的編碼準則（實務上常見的具體做法是 <b>MISRA C</b>／<b>MISRA C++</b>）。</li>
+        <li>採用限制語言中容易出錯用法的編碼準則（實務上常見的具體做法是 <b>MISRA C</b>／<b>MISRA C++</b>）<a class="cite" data-src="misra"></a>。</li>
         <li>用靜態分析工具檢查是否符合編碼準則，並控制函式的圈複雜度（cyclomatic complexity）。</li>
         <li>透過程式碼審查（code review）找出邏輯錯誤與不符準則的地方。</li>
         <li>撰寫程式碼時同步維護與需求的追溯關係，方便之後驗證與變更影響分析。</li>
       </ol>
+
+      <h3>MISRA 的定位</h3>
+      <p>MISRA C 與 MISRA C++ 由 MISRA 這個獨立組織維護，提供的是 C／C++ 語言在安全關鍵系統中的使用指引與規則集<a class="cite" data-src="misra_publications"></a>。業界普遍採用它來滿足 Part 6 對編碼準則的要求，但這是產業慣例，不是標準的強制指定。實務上也很少有專案 100% 遵守所有規則——常見做法是定義專案適用的規則子集，並對必要的偏離（deviation）建立正式的紀錄與核准流程，說明偏離原因與補償措施。</p>
       <div class="note warn">
         <p class="note-title">⚠ MISRA 不是 ISO 26262 的一部分</p>
         <p>MISRA C/C++ 是獨立於 ISO 26262 的產業編碼準則，只是業界常用它來落實 Part 6 對編碼規範的要求，兩者是互補關係，不要把它們搞混成同一份標準。</p>
       </div>
+
+      <h3>靜態分析與複雜度控制</h3>
+      <p>靜態分析工具負責兩件事：檢查編碼準則的符合性，以及找出不需執行就能發現的缺陷（未初始化變數、除以零的可能路徑、陣列越界、無法到達的程式碼）。複雜度指標則是控制可測試性的手段——圈複雜度大致對應到獨立執行路徑的數量，複雜度越高，要達成分支覆蓋所需的測試案例就越多，複雜度失控的函式實務上等於測不完。標準要求限制複雜度，但具體門檻由專案或公司內部規範訂定，標準本身不給數字。</p>
+      <p>另外要注意：靜態分析工具本身也是工具，如果它的輸出被用來取代其他驗證活動，就可能需要依 Part 8 的工具鑑定要求評估其可信度<a class="cite" data-src="iso26262_part8"></a>。這也是為什麼公司通常不讓工程師自由更換編譯器或分析工具版本。</p>
     </section>
 
     <section id="unit-verification">
       <h2 class="step">單元驗證</h2>
-      <p class="lede">Software Unit Verification 針對單一軟體單元，常見方法包括：</p>
+      <p class="lede">Software Unit Verification 針對單一軟體單元，確認它正確實現了單元設計，而且沒有非預期的行為。</p>
+
+      <h3>需求導向測試與結構覆蓋率，角色完全不同</h3>
+      <p>這是最容易被誤解的一點。測試案例應該從<b>需求</b>導出——你要驗證的是這個單元有沒有做到它該做的事。結構覆蓋率（statement / branch / MC/DC）<b>不是</b>測試案例的來源，而是事後拿來評估「需求導向的測試做得夠不夠徹底」的指標。</p>
+      <p>兩者角色不同的實益在於：如果你為了衝高覆蓋率而寫一堆「呼叫這個函式讓這行被執行到」的測試，覆蓋率數字會很漂亮，但什麼都沒驗證到。反過來，如果需求導向的測試跑完後覆蓋率不足，那是一個訊號，代表三種情況之一：需求沒寫完整（有行為沒被需求描述到）、測試案例不夠、或者這段程式碼根本是多餘的。覆蓋率不足時該做的是找出屬於哪一種並處理，而不是補幾個假測試把數字填滿。</p>
+
+      <h3>statement、branch、MC/DC 的差別</h3>
+      <p>用一個具體例子最清楚。假設程式碼是 <code>if (a &amp;&amp; b) { do_something(); }</code>：</p>
+      <ul class="plain">
+        <li><b>Statement coverage</b>：只要有一組測試讓 <code>do_something()</code> 被執行到就達成。一個測試案例（a 真、b 真）就夠。</li>
+        <li><b>Branch / decision coverage</b>：要求判斷式的真與假兩種結果都出現過。至少兩個測試案例。</li>
+        <li><b>MC/DC</b>：要求證明<b>每一個</b>條件都能獨立影響判斷結果。以這個例子需要三組：(真,真)→真、(假,真)→假、(真,假)→假。前後兩組各自證明了 a 和 b 單獨翻轉就能改變結果。</li>
+      </ul>
+      <p>MC/DC 之所以在高 ASIL 被重視，正是因為它能抓出「某個條件其實從來沒被真正檢驗過」這類問題——複合條件裡少寫一個 <code>&amp;</code> 或把 <code>||</code> 寫成 <code>&amp;&amp;</code>，statement 和 branch coverage 都可能照樣 100%，MC/DC 才會逼出來。</p>
+
+      <h3>常用的驗證方法</h3>
       <ul class="plain">
         <li>Requirements-based test（依需求設計測試案例）</li>
         <li>Boundary value analysis（邊界值分析）、equivalence class analysis（等價類分析）</li>
         <li>Error guessing、fault injection（錯誤猜測、故障注入）</li>
+        <li>靜態方法：walkthrough、inspection、靜態程式碼分析、控制流與資料流分析</li>
+        <li>資源使用評估：堆疊深度、執行時間是否在預算內</li>
         <li>結構覆蓋率量測：statement coverage → branch/decision coverage → 高 ASIL 常見的 MC/DC（modified condition/decision coverage）</li>
       </ul>
       <div class="note">
@@ -104,12 +165,23 @@
 
     <section id="integration">
       <h2 class="step">整合與驗證</h2>
-      <p class="lede">Software Integration Verification 驗證多個單元或元件組合起來之後的介面與互動行為，可能在 host（開發主機模擬）或 target（實際硬體）環境進行，依驗證目的而定。</p>
+      <p class="lede">Software Integration Verification 驗證多個單元或元件組合起來之後的介面與互動行為，可能在 host（開發主機模擬）或 target（實際硬體）環境進行，依驗證目的而定<a class="cite" data-src="iso26262_part6"></a>。</p>
+
+      <h3>整合階段真正在找的問題</h3>
+      <p>單元測試全過不代表組合起來會對。整合階段要抓的是單元測試看不到的那一類問題：介面上的認知落差（單位是 0.1 度還是 1 度、範圍是 0～100 還是 -50～50）、時序假設不成立（A 以為 B 每 10ms 更新一次，實際是 50ms）、共享資源的競態、以及全部組起來之後資源總量爆掉（堆疊、CPU 負載、記憶體）。</p>
       <ul class="plain">
-        <li>介面測試：確認模組之間傳遞的資料格式、時序符合預期。</li>
-        <li>資源使用評估：堆疊使用量、執行時間、記憶體使用量是否在預算內。</li>
+        <li>介面測試：確認模組之間傳遞的資料格式、單位、值域、時序符合雙方約定。</li>
+        <li>資源使用評估：堆疊使用量、執行時間、記憶體使用量是否在預算內——這在整合後才看得到真實數字。</li>
+        <li>故障注入測試：刻意注入錯誤，確認安全機制真的會被觸發、真的會進入安全狀態。這是驗證診斷程式碼唯一可靠的方式。</li>
         <li>回歸測試：確保新變更沒有破壞既有已驗證過的行為。</li>
       </ul>
+
+      <h3>Host 與 target 的取捨</h3>
+      <p>在開發主機上跑測試的好處明顯：速度快、容易自動化、方便量測覆蓋率、不需要搶有限的硬體。但 host 環境用的是不同的編譯器與不同的目標架構，有一整類問題在 host 上永遠不會出現——整數寬度與位元組序差異、編譯器最佳化造成的行為差異、真實的中斷延遲與時序、以及硬體暫存器的實際反應。</p>
+      <p>實務上常見的分工是：邏輯密集、與硬體無關的單元在 host 上做大量測試並量測覆蓋率；與硬體介面、時序、資源相關的驗證則必須在 target 上做。如果同一批測試在兩邊都跑，比對兩邊結果是否一致（back-to-back 比對）本身也是一種有效的驗證手段。要注意的是，覆蓋率如果只在 host 上量測，target 上實際跑的是最佳化過的不同機器碼，這個落差在高 ASIL 專案通常需要被說明或補強。</p>
+
+      <h3>變更之後</h3>
+      <p>每次變更都要回答一個問題：哪些既有的驗證結果因此失效了？這正是追溯性在發揮作用的地方——有完整的需求、設計、程式碼、測試對應關係，就能算出受影響的範圍，只重跑必要的部分；沒有的話，保守做法是全部重跑，成本高昂但至少安全。變更管理與組態管理的具體要求在 Part 8<a class="cite" data-src="iso26262_part8"></a>。</p>
     </section>
 
     <section id="vmodel">
@@ -154,6 +226,16 @@
         </svg>
         <figcaption><b>虛線代表驗證對應關係。</b>每一層右側的驗證活動，都是在確認對應左側那一層的設計是否被正確實現——單元驗證對應單元設計、整合驗證對應架構設計、安全需求驗證對應最初的安全需求。</figcaption>
       </figure>
+
+      <h3>V-model 真正想表達的事</h3>
+      <p>V-model 常被誤讀成「一定要照瀑布式順序走」，但它真正表達的是<b>對應關係</b>而不是時程。左邊每產出一份設計，右邊就有一個對應的驗證活動要回頭確認它——這個對應關係在敏捷或迭代式開發裡同樣成立，只是每一輪迭代都走一次小的 V 而已。標準要求的是每一層都有對應驗證，不是要求你不能迭代。</p>
+      <p>另一個實務重點是：驗證活動的設計應該在對應的左側活動完成時就一併規劃，而不是等到右側才開始想。寫完軟體安全需求時就該同時想好「這條需求最後要怎麼驗證」，這個習慣會反過來讓需求寫得更可驗證，也避免到了測試階段才發現某條需求根本無法測。</p>
+    </section>
+
+    <section id="sources">
+      <h2 class="step">本章出處</h2>
+      <p class="lede">本章引用的標準與規範，點擊可直接前往官方頁面。標準本文為付費取得，連結指向官方目錄頁。</p>
+      <div id="chapterSources"></div>
     </section>
 
     <section id="quiz">
@@ -174,6 +256,7 @@
 <script src="/assets/js/toc-scrollspy.js"></script>
 <script src="/assets/js/quiz-engine.js"></script>
 <script src="/assets/data/circle-01.quiz.js"></script>
+<script src="/assets/js/citations.js"></script>
 <script>
   window.ISO26262Quiz.mount('quizContainer', 'circle-01-software-development-part6', window.ISO26262_QUIZ_CIRCLE_01);
 </script>

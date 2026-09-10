@@ -29,6 +29,8 @@
       <li><a href="#decomposition"><span class="n">1</span><span>ASIL decomposition</span></a></li>
       <li><a href="#interference"><span class="n">2</span><span>Freedom from interference</span></a></li>
       <li><a href="#dependent-failure"><span class="n">3</span><span>相依失效分析</span></a></li>
+      <li><a href="#pitfalls"><span class="n">4</span><span>常見誤解</span></a></li>
+      <li><a href="#sources"><span class="n">－</span><span>本章出處</span></a></li>
       <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
     </ol>
   </nav>
@@ -36,16 +38,27 @@
   <main>
     <section id="overview">
       <h2 class="step">總覽</h2>
-      <p class="lede">Part 9 提供的不是新流程，而是一組「怎麼降低成本又不犧牲安全」的分析方法。核心邏輯都一樣：如果能證明兩個東西彼此獨立、不會同時失效，就可以用比較低成本的方式組合出高等級的安全保證。</p>
+      <p class="lede">Part 9 提供的不是新流程，而是一組「怎麼降低成本又不犧牲安全」的分析方法<a class="cite" data-src="iso26262_part9"></a>。核心邏輯都一樣：如果能證明兩個東西彼此獨立、不會同時失效，就可以用比較低成本的方式組合出高等級的安全保證。</p>
+
+      <p>這句話反過來讀更重要——<b>整套方法的價值完全建立在「獨立」這個前提上</b>。獨立性沒有被證明，分解就只是把同一份風險換個名字寫了兩次；分區沒有被證明，混合 ASIL 的架構就只是把一顆 QM 的地雷放在 ASIL D 任務旁邊。所以 Part 9 的三個主題其實是同一件事的三個面向：ASIL decomposition 用獨立性換開發等級，freedom from interference 用獨立性換共用硬體的權利，而相依失效分析就是那個負責檢查「獨立」到底成不成立的環節。</p>
+
+      <h3>Part 9 和其他 Part 的分工</h3>
+      <p>Part 9 談的是分析方法本身，適用於系統、硬體、軟體各層；真正落到軟體元件該怎麼設計、該用什麼技術措施達成隔離，規範在 Part 6<a class="cite" data-src="iso26262_part6"></a>。硬體端的隨機失效率、診斷覆蓋率那些量化指標則屬於 Part 5<a class="cite" data-src="iso26262_part5"></a>。實務上你會同時翻這三本：Part 9 告訴你「要論證什麼」，Part 6 告訴你「軟體要做到什麼」，Part 5 告訴你「硬體幫你擋掉了多少」。</p>
+
       <div class="note">
         <p class="note-title">為什麼軟韌體工程師要懂這部分</p>
         <p>如果你的 MCU 上同時跑著 ASIL D 的煞車控制和 ASIL A 甚至 QM（無安全等級）的車機娛樂功能，freedom from interference 直接決定你的記憶體保護、排程設計要怎麼做；ASIL decomposition 則常常出現在系統架構決策中，影響你要實作的軟體路徑數量。</p>
+        <p>更現實的一點是：這一章的結論會變成你程式碼裡的 MPU 設定表、排程器的時間預算、通訊訊框裡多出來的 CRC 與 counter 欄位。別人在架構會議上決定的「我們用 ASIL B(D) 分解」，最後是你要把那兩條路徑寫出來、並且說明它們為什麼不會一起壞。</p>
       </div>
     </section>
 
     <section id="decomposition">
       <h2 class="step"><span class="num">1</span>ASIL decomposition</h2>
-      <p>如果要整條路徑都做到 ASIL D 等級的嚴謹度，成本非常高。ASIL decomposition 允許把一個高 ASIL 的安全需求，拆成兩條（或多條）彼此獨立的冗餘路徑，個別路徑可以用較低的 ASIL 開發，只要能證明這兩條路徑滿足 <b>independence（獨立性）</b>——不會被同一個原因同時搞掛。</p>
+      <p class="lede">如果要整條路徑都做到 ASIL D 等級的嚴謹度，成本非常高。ASIL decomposition 允許把一個高 ASIL 的安全需求，拆成兩條（或多條）彼此獨立的冗餘路徑，個別路徑可以用較低的 ASIL 開發，只要能證明這兩條路徑滿足 <b>independence（獨立性）</b>——不會被同一個原因同時搞掛<a class="cite" data-src="iso26262_part9"></a>。</p>
+
+      <h3>分解到底換到了什麼</h3>
+      <p>ASIL 等級不是「這段程式碼有多重要」的標籤，而是「開發這段程式碼時必須套用多嚴格的方法」的規定。等級越高，需求要寫得越形式化、架構要越可驗證、單元測試的結構覆蓋率門檻越高、審查與確認措施越多。這些要求乘上人力，就是成本。</p>
+      <p>所以分解換到的東西很具體：<b>兩條各自用較低等級開發的路徑，其方法學要求的總和，可能比單一條高等級路徑還低</b>。例如把 ASIL D 拆成兩條 ASIL B(D)，兩條路徑都不必達到 ASIL D 對單元驗證所要求的最嚴格覆蓋率門檻。代價是你要寫兩份實作、兩份測試，還要額外做一份獨立性論證。這筆帳不是永遠划算，尤其當兩條路徑其實共用了大量程式碼時。</p>
 
       <figure>
         <svg viewBox="0 0 820 380" role="img" aria-label="ASIL D 需求分解成兩條獨立的 ASIL B(D) 冗餘路徑，兩者的輸出由安全機制比對後才輸出">
@@ -86,20 +99,68 @@
         <figcaption><b>兩條 ASIL B(D) 路徑組合起來，滿足原本 ASIL D 的安全需求。</b>括號裡的 (D) 表示這是為了滿足 D 等級需求而分解出來的路徑，不是這條路徑本身天生就是 ASIL D。獨立性是整個分解合法性的前提，如果兩條路徑共用同一顆感測器，共因失效會讓分解失去意義。</figcaption>
       </figure>
 
+      <h3>ASIL B(D) 那個括號是什麼意思</h3>
+      <p>分解後的等級一律寫成「新等級(原始等級)」這種帶括號的形式，例如 <code>ASIL B(D)</code>。前面的 B 是這條路徑實際要套用的開發嚴謹度，括號裡的 D 則是提醒所有人：<b>這是從一個 ASIL D 的需求分解出來的，原始安全目標的等級並沒有變成 B</b><a class="cite" data-src="iso26262_part9"></a>。</p>
+      <p>這個括號是整個機制裡最常被忽略、後果也最嚴重的部分。它的實際意義是：安全目標本身仍然是 ASIL D，所以凡是回到安全目標層級的活動——安全確效（safety validation）、功能安全評鑑、safety case 的論證強度、以及對整體架構的確認措施——都還是要按 ASIL D 的標準來。分解只影響「實作這兩條路徑的元件各自要用什麼等級開發」，不影響「這個安全目標有多重要」。</p>
+
+      <h3>常見的分解組合</h3>
+      <p>分解不能任意拆。可用的組合是固定的幾種，原則是拆出來的等級要能「加回」原始等級（把 ASIL A/B/C/D 當成 1/2/3/4 級來想，QM 當 0，兩邊相加要等於原始值）。下表整理最常遇到的幾組，完整的對照關係以 Part 9 正文為準<a class="cite" data-src="iso26262_part9"></a>：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>原始需求</th><th>可分解為</th><th>實務上的意思</th></tr></thead>
+          <tbody>
+            <tr><td><code>ASIL D</code></td><td><code>ASIL C(D)</code> + <code>ASIL A(D)</code></td><td>一條主路徑仍相當嚴格，搭一條較輕量的獨立監控</td></tr>
+            <tr><td><code>ASIL D</code></td><td><code>ASIL B(D)</code> + <code>ASIL B(D)</code></td><td>兩條對等的冗餘路徑，負擔平均分攤</td></tr>
+            <tr><td><code>ASIL D</code></td><td><code>ASIL D(D)</code> + <code>QM(D)</code></td><td>等於沒分解：主路徑照 D 做，另一條不能拿來當安全論證</td></tr>
+            <tr><td><code>ASIL C</code></td><td><code>ASIL B(C)</code> + <code>ASIL A(C)</code></td><td>同上邏輯，往下一階</td></tr>
+            <tr><td><code>ASIL B</code></td><td><code>ASIL A(B)</code> + <code>ASIL A(B)</code></td><td>兩條輕量路徑</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>注意最後那種 <code>ASIL D(D) + QM(D)</code>：它在形式上合法，但實際上沒有省到任何東西——主路徑仍然要完整做到 ASIL D。它存在的意義是描述「有一個 QM 元件參與，但安全論證完全不依賴它」這種情況，而不是一個可以拿來偷懶的選項。</p>
+
+      <h3>獨立性是前提，不是附註</h3>
+      <p>分解的合法性完全建立在兩條路徑「足夠獨立」上，而這件事必須用相依失效分析明確論證出來，不能宣稱<a class="cite" data-src="iso26262_part9"></a>。稽核時真正會被追問的也是這一段：你憑什麼說這兩條路徑不會被同一個原因一起打掉？如果答案是「它們是不同的 function」，那通常不夠——同一顆 MCU、同一個時脈源、同一份需求文件、同一個編譯器都可能是共同的失效來源。詳細的檢查方式在下面第 3 節。</p>
+
       <div class="note warn">
         <p class="note-title">分解不是免費的午餐</p>
         <p>ASIL decomposition 省下的是「單一路徑的開發嚴謹度」，但換來的是「要多開發、多驗證一條獨立路徑，還要證明兩者真的獨立」。這個權衡要在系統架構階段就評估清楚，不是軟體工程師能單方面決定的。</p>
+        <p>還有一個容易低估的成本：獨立性一旦被寫進安全論證，之後每一次架構調整都要重新檢查它是否還成立。把兩條路徑搬到同一顆核心、讓它們共用一個新的 driver、或是為了省 flash 把共同邏輯抽成共用函式——每一項都可能悄悄破壞當初的分解前提。</p>
       </div>
+
+      <h3>團隊最常誤用的地方</h3>
+      <p>最典型的誤用是<b>把分解當成事後的降級手續</b>：專案已經做完，才發現某個元件達不到 ASIL D 的要求，於是回頭宣稱「這裡其實有分解，所以它只需要 ASIL B」。但分解是架構決策，要先有真正獨立的冗餘結構、先有獨立性論證，才有分解可言；沒有第二條路徑卻宣稱分解，等於安全目標根本沒有被滿足。</p>
+      <p>第二種誤用是<b>拿分解替現成的 QM 元件背書</b>。想沿用一個既有的 QM 模組，於是設計一個「監控器」放旁邊，宣稱分解成 <code>QM(D) + ASIL D(D)</code>。這在形式上沒問題，但要注意此時安全論證完全落在那個監控器身上——它必須自己就能偵測並處理 QM 模組所有可能的錯誤行為，而且它自己要做到完整的 ASIL D。監控器往往比原本的功能還難寫，這條路徑經常比重寫還貴。</p>
     </section>
 
     <section id="interference">
       <h2 class="step"><span class="num">2</span>Freedom from interference（無干擾自由）</h2>
-      <p>當不同 ASIL 等級（甚至 QM，無安全等級）的軟體元件跑在同一顆 MCU 上，必須證明高 ASIL 的元件不會被低 ASIL 元件的錯誤影響。常見的干擾管道有三種：</p>
-      <ul class="plain">
-        <li><b>記憶體干擾</b>：低 ASIL 任務寫壞了高 ASIL 任務的記憶體</li>
-        <li><b>時間干擾</b>：低 ASIL 任務佔用過多 CPU 時間，導致高 ASIL 任務錯過 deadline</li>
-        <li><b>交換資訊干擾</b>：透過共用的通訊介面、旗標傳遞錯誤資料</li>
-      </ul>
+      <p class="lede">當不同 ASIL 等級（甚至 QM，無安全等級）的軟體元件跑在同一顆 MCU 上，必須證明高 ASIL 的元件不會被低 ASIL 元件的錯誤影響<a class="cite" data-src="iso26262_part9"></a>。這不是「盡量避免」的建議，而是共用硬體的前提條件：證明不出來，就只能把它們分到不同的硬體上。</p>
+
+      <h3>三種干擾管道</h3>
+      <p>軟體層級的干擾途徑可以歸成三類，Part 6 對每一類都列出了應該考慮的具體失效樣態<a class="cite" data-src="iso26262_part6"></a>。把它當成 checklist 用，比自己憑印象想要可靠得多：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>干擾類別</th><th>具體會怎麼壞</th><th>典型對策</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>時間與執行</b><br><span class="src">timing and execution</span></td>
+              <td>低 ASIL 任務佔住 CPU 導致高 ASIL 任務錯過 deadline；死結（deadlock）、活結（livelock）卡住共用資源；執行順序錯誤；中斷風暴排擠正常排程</td>
+              <td>時間分區、執行預算監控、優先權天花板、視窗式看門狗</td>
+            </tr>
+            <tr>
+              <td><b>記憶體</b><br><span class="src">memory</span></td>
+              <td>越界寫入改掉別的分區的變數；stack 溢位踩到鄰接區段；指標亂飛造成內容毀損；讀到不一致的資料</td>
+              <td>MPU／MMU 區段保護、每個任務獨立 stack 並加 guard、關鍵資料加冗餘或 CRC</td>
+            </tr>
+            <tr>
+              <td><b>資訊交換</b><br><span class="src">exchange of information</span></td>
+              <td>訊息遺失、重複、延遲、插入、順序錯亂、偽裝成別的發送者、內容毀損、只有部分接收者收到</td>
+              <td>E2E 保護：CRC、sequence counter、alive counter、data ID、逾時監控</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <figure>
         <svg viewBox="0 0 820 320" role="img" aria-label="同一顆 MCU 上，ASIL D 分區與 QM 分區之間透過記憶體保護與時間分區隔開">
@@ -128,19 +189,108 @@
         </svg>
         <figcaption><b>紅線是 freedom from interference 真正發生的地方。</b>典型做法是用 MPU／MMU 做記憶體隔離、用 RTOS 的時間分區（time partitioning）保證高 ASIL 任務的 CPU 配額不被低 ASIL 任務搶走。做不到硬體隔離時，也可以走論證式的分析（例如證明低 ASIL 元件不會寫入特定記憶體區域），但通常成本更高、更難說服稽核者。</figcaption>
       </figure>
+
+      <h3>記憶體干擾：MPU 分區怎麼落地</h3>
+      <p>最實際的做法是讓 RTOS 在每次 context switch 時重新載入該任務的 MPU 區段設定，使每個任務只看得到自己的資料區、自己的 stack，以及明確授權的共用區。QM 分區的任務即使指標寫飛，也會在硬體層被擋下並觸發例外，而不是安靜地改掉 ASIL D 任務的變數。</p>
+      <p>兩個容易漏掉的細節：第一，<b>stack 也要納入保護</b>，每個任務的 stack 之間留 guard region，讓溢位立刻變成可偵測的例外，而不是踩進鄰居的資料；第二，<b>共用區的方向要分清楚</b>，讓 QM 分區對共用區唯讀、由 ASIL 分區寫入，比雙向可寫容易論證得多。</p>
+
+      <h3>時間干擾：光有優先權是不夠的</h3>
+      <p>很多人以為「把 ASIL D 任務設成最高優先權」就解決了時間干擾，但那只擋得住「低優先權任務跑太久」這一種情況。真正會咬人的是共用資源：低 ASIL 任務拿著一個 mutex 不放、或在中斷關閉狀態待太久，高優先權任務照樣被卡住（優先權反轉）。中斷也一樣——一個失控的週邊不斷產生中斷，可以把整顆核心的可用時間吃光，而它可能根本不屬於任何「任務」。</p>
+      <p>所以時間分區通常要三件事一起做：給每個分區<b>執行時間預算</b>並在超支時強制切換、對關鍵任務用<b>視窗式看門狗</b>（太早餵和太晚餵都算異常，這樣才抓得到「跑太快」的異常路徑）、以及對中斷來源設上限或做去彈跳。這些都是你在韌體裡要實際寫出來的程式碼。</p>
+
+      <h3>資訊交換干擾：為什麼訊框裡要多那幾個欄位</h3>
+      <p>兩個分區之間交換資料時，接收端不能假設收到的東西是對的。標準做法是在資料本身附上保護資訊，讓接收端能自行判斷：<b>CRC</b> 抓內容毀損、<b>sequence counter</b> 抓遺失／重複／順序錯亂、<b>alive counter 加逾時監控</b>抓「對方其實已經掛了但匯流排上還有舊值」、<b>data ID</b> 抓偽裝與錯誤定址（把 A 訊息誤當成 B 訊息解讀）。</p>
+      <p>關鍵在於這些檢查要由<b>接收端自己做</b>，而且要涵蓋端到端的整條路徑。只依賴匯流排協定本身的 CRC 是不夠的——那只保護了線上那一段，保護不了發送端軟體堆疊裡把資料寫錯位置的錯誤。AUTOSAR 的 E2E 保護就是這個概念的標準化實作<a class="cite" data-src="autosar"></a>。</p>
+
+      <h3>多核心混合 ASIL 的現實</h3>
+      <p>把 QM 功能丟到另一顆核心，直覺上像是徹底隔離了，但兩顆核心底下仍然共用一大堆東西：匯流排頻寬、快取、記憶體控制器、DMA、電源與時脈。這些共用資源會讓「隔離」出現漏洞：</p>
+      <ul class="plain">
+        <li><b>DMA 可以繞過 CPU 的 MPU</b>。DMA 控制器是獨立的匯流排主控，一個設錯的 DMA 描述子可以直接寫進別的分區。要靠有 DMA 保護能力的硬體（部分 MCU 提供週邊／匯流排層級的保護單元）或嚴格限制哪些程式碼能設定 DMA。</li>
+        <li><b>共用快取與匯流排造成時間耦合</b>。另一顆核心的存取模式會影響你這顆核心的執行時間，讓最壞執行時間（WCET）變得難以估算。這是為什麼多核心的時間論證通常要靠實測加保守餘裕，而不是純理論分析。</li>
+        <li><b>共用週邊要指定歸屬</b>。同一個計時器、同一個通訊控制器如果兩邊都能碰，隔離就破了；通常要在初始化階段就把週邊明確劃分給特定核心／分區。</li>
+      </ul>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 分區設定本身也是安全相關的程式碼</p>
+        <p>MPU 區段表、排程器的時間預算、DMA 的存取權限——這些設定如果被寫錯或在執行期被改掉，整個隔離論證就失效了。所以設定這些東西的初始化程式碼，其 ASIL 等級要跟被保護的最高等級一致，而且通常還要在執行期定期驗證設定沒有被竄改。這是很多團隊第一次做混合 ASIL 時會漏掉的一環。</p>
+      </div>
     </section>
 
     <section id="dependent-failure">
       <h2 class="step"><span class="num">3</span>相依失效分析（Dependent failure analysis）</h2>
-      <p>不管是 ASIL decomposition 還是 freedom from interference，「獨立性」的前提都要靠 dependent failure analysis 來驗證，而不是憑感覺假設。這個分析要找出兩種風險：</p>
+      <p class="lede">不管是 ASIL decomposition 還是 freedom from interference，「獨立性」的前提都要靠 dependent failure analysis 來驗證，而不是憑感覺假設<a class="cite" data-src="iso26262_part9"></a>。這一節是前兩節的檢查機制，也是稽核時最常被追問的地方。</p>
+
+      <h3>兩種相依失效</h3>
       <ul class="plain">
         <li><b>Common cause failure（共因失效）</b>：單一原因同時讓兩個原本被認為獨立的元件失效，例如同一個電源突波同時打壞兩條路徑的感測器。</li>
         <li><b>Cascading failure（串聯失效）</b>：一個元件的失效直接觸發另一個元件跟著失效，例如某個任務當機導致共用的匯流排卡死，波及其他任務。</li>
       </ul>
+      <p>兩者的差別在於因果方向：共因失效是「一個外部原因打兩個」，串聯失效是「A 壞了去打 B」。分析時的問法也不同——共因失效要往上找共同的來源，串聯失效要沿著介面往下追影響範圍。Freedom from interference 針對的主要就是串聯失效這一類：證明 QM 分區壞掉時，壞的影響不會傳到 ASIL 分區。</p>
+
+      <h3>常見的耦合因子</h3>
+      <p>分析的實際做法是逐一檢查兩個元件之間有哪些共用的東西，每一項共用都是一個可能的相依來源。這份清單值得在每次架構審查時拿出來對一遍：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>耦合類型</th><th>具體例子</th><th>怎麼處理</th></tr></thead>
+          <tbody>
+            <tr><td>共用硬體資源</td><td>同一顆 MCU、同一段 RAM、同一個 DMA、同一條匯流排</td><td>實體分離，或用保護單元隔離並論證</td></tr>
+            <tr><td>共用供電與時脈</td><td>同一個電源軌、同一顆晶振或 PLL</td><td>獨立供電／獨立時脈源，或加電壓與時脈監控</td></tr>
+            <tr><td>共用環境條件</td><td>同一片 PCB 上相鄰、同樣的溫度與振動、同樣的 EMC 環境</td><td>實體佈局分離，環境測試涵蓋兩者同時受影響的情況</td></tr>
+            <tr><td>共用開發來源</td><td>同一份需求文件、同一個編譯器、同一套函式庫、同一個團隊</td><td>需求層做獨立審查；必要時導入多樣性（不同演算法或不同工具鏈）</td></tr>
+            <tr><td>共用資料來源</td><td>兩條路徑都讀同一顆感測器的同一個訊號</td><td>用不同的量測原理取得同一個物理量（diverse redundancy）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>為什麼「我們有兩條通道」不等於獨立</h3>
+      <p>兩條通道只是結構上看起來分開，實際上很可能在上面每一列都撞在一起。最常見的情況是：兩條路徑跑在同一顆 MCU 的兩顆核心上，共用時脈、共用電源、共用 RAM 控制器，程式由同一個團隊用同一個編譯器編出來，而且都是照同一份需求規格寫的。這樣的「兩條通道」對隨機硬體失效或許還有點效果，但對其他大多數失效原因來說，它們是一體的。</p>
+      <p>檢驗的方法很直接：對每一個耦合因子問「如果這一項壞了／錯了，兩條路徑會不會一起失效？」只要有一項的答案是「會」，那一項就必須被消除、被隔離，或是被一個能偵測該情況的安全機制涵蓋。</p>
+
+      <h3>系統性錯誤不會被複製品擋下來</h3>
+      <p>這是軟體工程師最該記住的一點。硬體的隨機失效可以靠冗餘來降低機率——兩顆電阻同時燒掉的機率遠低於一顆。但軟體沒有隨機失效，軟體的錯誤全都是系統性的：<b>把同一份程式跑兩遍，會得到一模一樣的錯誤答案兩次</b>。需求本身理解錯了，兩條路徑會一起錯；演算法有邊界條件的 bug，兩份複製品會在同一個輸入上一起爆。</p>
+      <p>所以軟體側的冗餘幾乎不會是「複製一份」，而是走以下兩條路之一：導入<b>多樣性</b>（用不同的演算法、不同的資料來源，甚至不同的工具鏈實作同一個功能），或是設計一個<b>獨立的監控層</b>——一個比主功能簡單很多、獨立寫成、只負責判斷主功能的輸出是否合理的模組。後者在業界更常見，因為監控邏輯通常可以做得很簡單（例如檢查扭矩輸出是否超出當前踏板位置所應允許的範圍），簡單就意味著容易做到高 ASIL、也容易論證它跟主功能沒有共用的系統性錯誤。</p>
+
       <div class="note good">
         <p class="note-title">實務上怎麼用</p>
         <p>在做 ASIL decomposition 或宣稱 freedom from interference 之前，先問：「這兩個東西真的不會被同一個原因、同一次事件一起搞掛嗎？」答不出來，代表分解或分區的獨立性論證還不完整。</p>
+        <p>把上面那張耦合因子表當成架構審查的固定議程，逐列問一次。這比事後被稽核者問倒、再回頭改架構便宜太多了。</p>
       </div>
+    </section>
+
+    <section id="pitfalls">
+      <h2 class="step"><span class="num">4</span>常見誤解</h2>
+      <p class="lede">這幾個問題在混合 ASIL 專案裡幾乎每次都會出現，先看過一遍可以少走一些冤枉路。</p>
+
+      <details>
+        <summary>分解之後，原本的安全目標是不是就變成低等級了？</summary>
+        <p>不是。安全目標的 ASIL 完全不變，這正是 <code>ASIL B(D)</code> 括號裡那個 D 要提醒的事<a class="cite" data-src="iso26262_part9"></a>。改變的只有「實作這兩條路徑的元件各自要用什麼開發嚴謹度」。回到安全目標層級的活動——確效、評鑑、safety case——仍然按原始等級辦理。</p>
+      </details>
+
+      <details>
+        <summary>把 QM 功能放到另一顆核心，是不是就自動達成 freedom from interference 了？</summary>
+        <p>不會自動達成。兩顆核心仍共用匯流排、記憶體控制器、DMA、電源與時脈，而 DMA 特別危險，因為它是獨立的匯流排主控，可以繞過 CPU 的 MPU 直接寫進別的分區。分到不同核心是好的起點，但仍然要逐項論證共用資源不會構成干擾途徑。</p>
+      </details>
+
+      <details>
+        <summary>同一份程式碼跑兩份，算不算冗餘？</summary>
+        <p>對軟體來說幾乎沒有意義。軟體錯誤都是系統性的，複製品會在同樣的輸入上犯同樣的錯。要有效果必須引入多樣性，或改用一個獨立設計、邏輯較簡單的監控層來檢查主功能的輸出是否合理。</p>
+      </details>
+
+      <details>
+        <summary>ASIL 等級是怎麼來的？可以自己調整嗎？</summary>
+        <p>ASIL 是在概念階段由 HARA 依 Severity、Exposure、Controllability 判定出來的，屬於 Part 3 的範圍<a class="cite" data-src="iso26262_part3"></a>，不是開發階段可以自行調降的參數。ASIL decomposition 也不是在調整這個判定結果，它只是在既定的安全目標之下重新分配實作元件的開發等級。</p>
+      </details>
+
+      <details>
+        <summary>獨立性論證做過一次就永久有效嗎？</summary>
+        <p>不是。獨立性是架構的性質，架構一改就要重驗。把兩條路徑搬到同一顆核心、為了省空間把共同邏輯抽成共用函式、換一個共用的 driver——這些看起來像單純重構的動作，都可能讓當初的分解或分區前提失效，必須走變更管理流程重新評估<a class="cite" data-src="iso26262_part8"></a>。</p>
+      </details>
+    </section>
+
+    <section id="sources">
+      <h2 class="step">本章出處</h2>
+      <p class="lede">本章引用的標準與規範，點擊可直接前往官方頁面。</p>
+      <div id="chapterSources"></div>
     </section>
 
     <section id="quiz">
@@ -161,6 +311,7 @@
 <script src="/assets/js/toc-scrollspy.js"></script>
 <script src="/assets/js/quiz-engine.js"></script>
 <script src="/assets/data/circle-03.quiz.js"></script>
+<script src="/assets/js/citations.js"></script>
 <script>
   window.ISO26262Quiz.mount('quizContainer', 'circle-03-safety-analyses-part9', window.ISO26262_QUIZ_CIRCLE_03);
 </script>

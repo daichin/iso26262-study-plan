@@ -351,6 +351,22 @@ details p { margin: .75rem 0 .2rem; color: var(--ink-soft); }
 .progress-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
 .progress-label { font-size: .78rem; color: var(--ink-faint); margin-top: .4rem; font-family: var(--mono); }
 
+/* ---------- 內文出處引用 ---------- */
+/* 行內晶片。不用 sup：出處標籤是「ISO 26262-6:2018」這種長字串，
+   縮成上標會小到讀不出來，也達不到 44px 觸控目標。 */
+.cite {
+  display: inline-block; white-space: nowrap; vertical-align: baseline;
+  font-family: var(--mono); font-size: .74rem; line-height: 1.6;
+  text-decoration: none; color: var(--accent-ink);
+  background: var(--accent-soft); border: 1px solid var(--line);
+  border-radius: 999px; padding: .05em .55em; margin-inline-start: .3em;
+}
+.cite:hover { border-color: var(--accent); }
+/* 晶片 + 緊跟的收尾標點必須一起換行，否則「。」會被單獨甩到下一行（見 citations.js） */
+.cite-nb { white-space: nowrap; }
+.source-list { margin: 1rem 0 0; padding-inline-start: 1.2rem; }
+.source-list li { margin-bottom: .4rem; font-size: .9rem; color: var(--ink-soft); }
+
 /* ---------- 測驗 ---------- */
 .quiz-question { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
 .quiz-question .q-text { font-weight: 500; margin-bottom: .8rem; max-width: none; }

@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ubuntu 自架部署手冊 — ISO 26262 學習網站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<link rel="stylesheet" href="../public/assets/css/theme.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">自架部署手冊 ・ v1.0</p>
+    <h1>在 Ubuntu 上架設 ISO 26262 學習網站</h1>
+    <p class="standfirst">整套跑在你自己的 Ubuntu 機器上，資料庫也在同一台，不需要任何雲端服務、不需要對外網路。</p>
+    <ul class="facts">
+      <li>所需時間 <b>約 25 分鐘</b></li>
+      <li>費用 <b>NT$0</b></li>
+      <li>需要 <b>sudo 權限</b></li>
+      <li>對外網路 <b>只有下載套件時需要</b></li>
+    </ul>
+  </div>
+</header>
+
+<div class="shell shell-with-toc">
+  <nav class="index-toc" id="index" aria-label="目錄">
+    <h2>目錄</h2>
+    <button class="toc-toggle" id="tocToggle" aria-expanded="false" aria-controls="tocList">☰ 目錄</button>
+    <ol id="tocList">
+      <li><a href="#overview"><span class="n">－</span><span>開始之前</span></a></li>
+      <li><a href="#map"><span class="n">－</span><span>整體架構圖</span></a></li>
+      <li><a href="#node"><span class="n">0</span><span>安裝 Node.js</span></a></li>
+      <li><a href="#postgres"><span class="n">1</span><span>安裝 PostgreSQL</span></a></li>
+      <li><a href="#code"><span class="n">2</span><span>取得程式碼</span></a></li>
+      <li><a href="#env"><span class="n">3</span><span>建立 .env</span></a></li>
+      <li><a href="#migrate"><span class="n">4</span><span>建立資料表與管理者</span></a></li>
+      <li><a href="#run"><span class="n">5</span><span>先手動跑一次</span></a></li>
+      <li><a href="#systemd"><span class="n">6</span><span>設成開機自動啟動</span></a></li>
+      <li><a href="#lan"><span class="n">7</span><span>讓區網其他機器連得到</span></a></li>
+      <li><a href="#ongoing"><span class="n">－</span><span>日後的操作</span></a></li>
+      <li><a href="#faq"><span class="n">？</span><span>常見問題</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2 class="step">開始之前</h2>
+      <p class="lede">這份手冊跟 <a href="deployment-guide.html">Render 部署手冊</a> 是兩條互斥的路：那一份把網站放上雲端，這一份把整套東西架在你自己的 Ubuntu 機器上。兩者的程式碼完全相同，差別只在資料庫在哪裡、由誰負責把服務叫起來。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>元件</th><th>負責什麼</th><th>這份手冊怎麼裝</th></tr></thead>
+          <tbody>
+            <tr><td><b>Node.js</b></td><td>執行 Express 網站程式</td><td>apt 安裝（需 18 以上）</td></tr>
+            <tr><td><b>PostgreSQL</b></td><td>存放帳號、測驗成績、session</td><td>裝在同一台機器，走 localhost</td></tr>
+            <tr><td><b>systemd</b></td><td>開機自動啟動、當掉自動重開</td><td>Ubuntu 內建，寫一個 service 檔</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note good">
+        <p class="note-title">✓ 為什麼自架比雲端單純</p>
+        <p>資料庫就在 <code>localhost</code>，不經過任何對外連線，所以公司 proxy、防火牆擋 5432 這類問題全部不存在。裝完之後整套可以完全離線運作。</p>
+      </div>
+
+      <div class="note">
+        <p class="note-title">你需要先知道的一件事</p>
+        <p>這個網站<b>沒有自助註冊功能</b>。第一個管理者帳號是在步驟 4 由環境變數建立的，之後其他成員都要由管理者在網站上新增。這是刻意的設計，不是還沒做完。</p>
+      </div>
+    </section>
+
+    <section id="map">
+      <h2 class="step">整體架構圖</h2>
+      <p class="lede">全部在同一台機器上，沒有跨機器的連線。</p>
+      <figure>
+        <svg viewBox="0 0 880 340" role="img" aria-label="一台 Ubuntu 機器內含 systemd 管理的 Node Express 服務與 PostgreSQL，瀏覽器由區網連入 3000 埠">
+          <defs>
+            <marker id="ub-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+            <marker id="ub-ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#0F6079"/>
+            </marker>
+          </defs>
+
+          <rect x="270" y="28" width="590" height="286" rx="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="290" y="52" font-family="Noto Sans TC, sans-serif" font-size="12.5" font-weight="700" fill="currentColor" opacity=".7">你的 Ubuntu 機器</text>
+
+          <rect x="20" y="120" width="180" height="86" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="110" y="152" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="14" font-weight="700" fill="currentColor">瀏覽器</text>
+          <text x="110" y="174" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11" fill="currentColor">同一台或區網其他機器</text>
+
+          <path d="M200,163 H262" fill="none" stroke="#0F6079" stroke-width="2" marker-end="url(#ub-ah-a)"/>
+          <text x="231" y="154" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">:3000</text>
+
+          <rect x="300" y="88" width="250" height="150" rx="10" fill="none" stroke="#0F6079" stroke-width="2"/>
+          <text x="425" y="118" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="14" font-weight="700" fill="#0F6079">Node / Express</text>
+          <text x="425" y="142" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">server/index.js</text>
+          <line x1="322" y1="158" x2="528" y2="158" stroke="currentColor" stroke-width="1" opacity=".35"/>
+          <text x="425" y="180" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">靜態頁面 + /api/*</text>
+          <text x="425" y="202" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">session 檢查</text>
+          <text x="425" y="224" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="10.5" fill="currentColor" opacity=".7">由 systemd 拉起來</text>
+
+          <path d="M550,163 H620" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#ub-ah)"/>
+          <text x="585" y="154" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">localhost</text>
+          <text x="585" y="180" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">:5432</text>
+
+          <rect x="632" y="88" width="210" height="150" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="737" y="118" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="14" font-weight="700" fill="currentColor">PostgreSQL</text>
+          <text x="737" y="146" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">users</text>
+          <text x="737" y="168" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">quiz_attempts</text>
+          <text x="737" y="190" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">session</text>
+          <text x="737" y="216" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="10.5" fill="currentColor" opacity=".7">不對外開放</text>
+
+          <text x="565" y="290" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor" opacity=".8">資料庫只聽 localhost，不需要也不應該對外開放 5432</text>
+        </svg>
+        <figcaption><b>資料庫不對外，只有 3000 埠需要讓瀏覽器連得到。</b>如果只在本機看，連 3000 埠都不用開防火牆；要讓區網其他機器連，才需要步驟 7。</figcaption>
+      </figure>
+    </section>
+
+    <section id="node">
+      <h2 class="step"><span class="num">0</span>安裝 Node.js</h2>
+      <p class="lede">專案需要 Node.js 18 以上。先看看機器上有沒有，有的話就跳過這步。</p>
+      <div class="cmd">node -v</div>
+      <p>如果指令找不到，或版本低於 18，用 Ubuntu 內建的套件庫裝：</p>
+      <div class="cmd">sudo apt update
+sudo apt install -y nodejs npm
+node -v</div>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 如果 apt 裝出來的版本低於 18</p>
+        <p>比較舊的 Ubuntu（22.04 以前）套件庫裡的 Node 可能太舊。改用 NodeSource 的套件庫裝 20：</p>
+        <div class="cmd">curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v</div>
+      </div>
+    </section>
+
+    <section id="postgres">
+      <h2 class="step"><span class="num">1</span>安裝 PostgreSQL 並建立資料庫</h2>
+      <p class="lede">資料庫跟網站放在同一台機器，走 localhost，不對外開放。</p>
+
+      <div class="cmd">sudo apt install -y postgresql
+sudo systemctl enable --now postgresql
+systemctl status postgresql --no-pager</div>
+      <p>看到 <code>active (running)</code> 就代表資料庫服務起來了。</p>
+
+      <h3>建立專用的資料庫與使用者</h3>
+      <p>不要用 <code>postgres</code> 超級使用者來跑網站。建立一組專用帳號：</p>
+      <div class="cmd">sudo -u postgres psql</div>
+      <p>進到 <code>postgres=#</code> 提示字元後，依序貼上這三行（<b>密碼請改成你自己的</b>）：</p>
+      <div class="cmd">CREATE USER iso26262 WITH PASSWORD '換成你自己的密碼';
+CREATE DATABASE iso26262 OWNER iso26262;
+\q</div>
+
+      <div class="note">
+        <p class="note-title">記下你的連線字串</p>
+        <p>照上面建立的話，連線字串就是：</p>
+        <p><code>postgresql://iso26262:你的密碼@localhost:5432/iso26262</code></p>
+        <p>下一步會用到。<b>注意結尾沒有 <code>?sslmode=require</code></b>——本機資料庫預設沒開 SSL，程式會自動判斷不要用 SSL 連。</p>
+      </div>
+    </section>
+
+    <section id="code">
+      <h2 class="step"><span class="num">2</span>取得程式碼</h2>
+      <p class="lede">從 GitHub 抓下來，並安裝相依套件。</p>
+      <div class="cmd">cd ~
+git clone https://github.com/你的帳號/iso26262-study-plan.git
+cd iso26262-study-plan
+npm install</div>
+      <p><code>npm install</code> 需要對外網路（要從 npm 下載套件）。裝完之後，整套就不再需要對外連線了。</p>
+    </section>
+
+    <section id="env">
+      <h2 class="step"><span class="num">3</span>建立 .env</h2>
+      <p class="lede">環境變數決定資料庫接哪裡、第一個管理者帳號是誰。</p>
+      <div class="cmd">cp .env.example .env
+nano .env</div>
+      <p>把五個值填成你自己的：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>名稱</th><th>填什麼</th><th class="src">來源</th></tr></thead>
+          <tbody>
+            <tr><td><code>DATABASE_URL</code></td><td><code>postgresql://iso26262:你的密碼@localhost:5432/iso26262</code></td><td class="src">步驟 1</td></tr>
+            <tr><td><code>SESSION_SECRET</code></td><td>隨手打 40 個以上的英數字，不用記住</td><td class="src">自己產生</td></tr>
+            <tr><td><code>ADMIN_EMAIL</code></td><td>你要用來登入的 Email</td><td class="src">自己決定</td></tr>
+            <tr><td><code>ADMIN_NAME</code></td><td>顯示在頁首的名字</td><td class="src">自己決定</td></tr>
+            <tr><td><code>ADMIN_INITIAL_PASSWORD</code></td><td>第一次登入用的臨時密碼</td><td class="src">自己決定</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>另外把 <code>NODE_ENV</code> 設成 <code>production</code>，<code>PORT</code> 保持 3000 即可。在 nano 裡按 <kbd>Ctrl</kbd>+<kbd>O</kbd> 存檔、<kbd>Ctrl</kbd>+<kbd>X</kbd> 離開。</p>
+
+      <div class="note warn">
+        <p class="note-title">⚠ .env 不會進版控，也不該進版控</p>
+        <p><code>.gitignore</code> 已經排除 <code>.env</code>。這代表你在每一台部署的機器上都要自己建一份，也代表<b>不要</b>把密碼貼到 git 或聊天訊息裡。</p>
+      </div>
+    </section>
+
+    <section id="migrate">
+      <h2 class="step"><span class="num">4</span>建立資料表與管理者帳號</h2>
+      <p class="lede">資料庫現在還是空的，跑一次 migration 把資料表和第一個管理者建出來。</p>
+      <div class="cmd">npm run migrate</div>
+      <p>成功的話會看到：</p>
+      <div class="cmd">執行 schema.sql 建立資料表...
+資料表建立完成。
+已建立管理者帳號：你填的 Email（第一次登入會強制要求改密碼）
+Migration 完成。</div>
+
+      <div class="note good">
+        <p class="note-title">✓ 這一步只需要做一次</p>
+        <p>腳本會偵測管理者 Email 是否已存在，重複執行不會出錯也不會重複建立，但沒有必要。</p>
+      </div>
+    </section>
+
+    <section id="run">
+      <h2 class="step"><span class="num">5</span>先手動跑一次</h2>
+      <p class="lede">在寫 systemd 設定之前，先確認它真的能跑起來。</p>
+      <div class="cmd">npm start</div>
+      <p>看到 <code>ISO 26262 學習網站啟動於 http://localhost:3000</code> 就對了。另外開一個終端機測試：</p>
+      <div class="cmd">curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/login.html</div>
+      <p>回 <code>200</code> 代表網站活著。如果這台機器有桌面環境，直接用瀏覽器開 <code>http://localhost:3000</code> 就會看到登入頁。確認完按 <kbd>Ctrl</kbd>+<kbd>C</kbd> 停掉，接著設成常駐服務。</p>
+    </section>
+
+    <section id="systemd">
+      <h2 class="step"><span class="num">6</span>設成開機自動啟動</h2>
+      <p class="lede">用 systemd 管理，機器重開之後網站會自己起來，程式當掉也會自動重啟。</p>
+
+      <ol class="steps">
+        <li>先確認兩件事，等一下要填進設定檔：
+          <div class="cmd">whoami
+pwd
+which node</div>
+        </li>
+        <li>建立 service 檔：
+          <div class="cmd">sudo nano /etc/systemd/system/iso26262.service</div>
+        </li>
+        <li>貼上以下內容，把 <code>你的帳號</code> 與兩個路徑換成上一步查到的實際值：
+          <div class="cmd">[Unit]
+Description=ISO 26262 學習網站
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=你的帳號
+WorkingDirectory=/home/你的帳號/iso26262-study-plan
+ExecStart=/usr/bin/node server/index.js
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target</div>
+        </li>
+        <li>存檔離開，然後啟用：
+          <div class="cmd">sudo systemctl daemon-reload
+sudo systemctl enable --now iso26262
+systemctl status iso26262 --no-pager</div>
+        </li>
+        <li>看到 <code>active (running)</code> 就完成了。</li>
+      </ol>
+
+      <div class="note">
+        <p class="note-title">為什麼 ExecStart 要寫絕對路徑</p>
+        <p>systemd 不會載入你的 shell 設定，所以 <code>node</code> 不一定在它的 PATH 裡。用 <code>which node</code> 查到的絕對路徑最保險。如果你是用 nvm 裝的 Node，路徑會長得像 <code>/home/你的帳號/.nvm/versions/node/v20.x.x/bin/node</code>。</p>
+      </div>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 服務起不來的話</p>
+        <p><code>systemctl status</code> 只會顯示最後幾行。看完整錯誤訊息用：</p>
+        <div class="cmd">journalctl -u iso26262 -n 50 --no-pager</div>
+        <p>最常見的原因是 <code>WorkingDirectory</code> 路徑打錯，或 <code>.env</code> 不在那個目錄底下。</p>
+      </div>
+    </section>
+
+    <section id="lan">
+      <h2 class="step"><span class="num">7</span>讓區網其他機器連得到</h2>
+      <p class="lede">如果只在這台機器上看，這步可以跳過。要讓同事或你另一台電腦連進來，才需要開防火牆。</p>
+
+      <p>先查這台機器的區網 IP：</p>
+      <div class="cmd">hostname -I</div>
+      <p>如果有啟用 ufw，放行 3000 埠：</p>
+      <div class="cmd">sudo ufw allow 3000/tcp
+sudo ufw status</div>
+      <p>然後在別台機器的瀏覽器輸入 <code>http://那個IP:3000</code> 就能連上。</p>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 這是 HTTP，不是 HTTPS</p>
+        <p>密碼會以明文在區網上傳輸。放在公司內網的信任環境還可以接受，但<b>不要把 3000 埠轉發到公開網際網路</b>。真的需要對外，請改用 <a href="deployment-guide.html">Render 部署</a>（自帶 HTTPS），或在前面架一層 nginx + Let's Encrypt 憑證。</p>
+      </div>
+
+      <div class="note">
+        <p class="note-title">不要開放 5432</p>
+        <p>資料庫沒有任何理由需要被區網其他機器連到。維持預設的只聽 localhost 就好。</p>
+      </div>
+    </section>
+
+    <section id="ongoing">
+      <h2 class="step">日後的操作</h2>
+
+      <div class="tabmap">
+        <div><b>更新程式碼</b><span><code>git pull</code> 之後重啟服務。有改到相依套件才需要再跑 <code>npm install</code>。</span></div>
+        <div><b>看即時 log</b><span><code>journalctl -u iso26262 -f</code>，按 Ctrl+C 離開。</span></div>
+        <div><b>新增成員</b><span>用管理者帳號登入網站 → 成員管理，不需要碰終端機。</span></div>
+        <div><b>查團隊進度</b><span>管理者登入 → 團隊進度，看每個人每一圈的成績。</span></div>
+      </div>
+
+      <h3>更新到最新版</h3>
+      <div class="cmd">cd ~/iso26262-study-plan
+git pull
+npm install
+sudo systemctl restart iso26262</div>
+
+      <h3>備份資料庫</h3>
+      <p>帳號與所有測驗成績都在資料庫裡，程式碼在 git 上，所以要備份的只有資料庫：</p>
+      <div class="cmd">pg_dump -U iso26262 -h localhost iso26262 > ~/iso26262-backup-$(date +%F).sql</div>
+      <p>還原：</p>
+      <div class="cmd">psql -U iso26262 -h localhost iso26262 &lt; ~/iso26262-backup-2026-09-10.sql</div>
+    </section>
+
+    <section id="faq">
+      <h2 class="step">常見問題</h2>
+
+      <details>
+        <summary>npm run migrate 出現 ECONNREFUSED 127.0.0.1:5432</summary>
+        <p>PostgreSQL 沒在跑。用 <code>sudo systemctl status postgresql</code> 確認，必要時 <code>sudo systemctl start postgresql</code>。</p>
+      </details>
+
+      <details>
+        <summary>出現 The server does not support SSL connections</summary>
+        <p>代表你的 <code>DATABASE_URL</code> 結尾帶了 <code>?sslmode=require</code>，但本機 PostgreSQL 沒開 SSL。把那段參數拿掉即可——本機連線不需要 SSL。</p>
+      </details>
+
+      <details>
+        <summary>出現 password authentication failed for user "iso26262"</summary>
+        <p><code>.env</code> 裡的密碼跟步驟 1 建立使用者時設的不一致。可以重設：<code>sudo -u postgres psql -c "ALTER USER iso26262 WITH PASSWORD '新密碼';"</code>，然後同步改 <code>.env</code>。</p>
+      </details>
+
+      <details>
+        <summary>登入時顯示帳號或密碼不正確</summary>
+        <p>先確認 <code>npm run migrate</code> 有成功跑過（步驟 4）。登入要用的是 <code>ADMIN_EMAIL</code> 與 <code>ADMIN_INITIAL_PASSWORD</code>，注意大小寫。改過密碼之後就要用新密碼。</p>
+      </details>
+
+      <details>
+        <summary>忘記密碼了</summary>
+        <p>目前沒有自助重設流程。直接連進資料庫把該帳號標記成需要改密碼，下次登入時用臨時密碼進去即可：</p>
+        <p><code>psql -U iso26262 -h localhost iso26262 -c "UPDATE users SET must_change_password = true WHERE email = 'you@example.com';"</code></p>
+        <p>如果連臨時密碼也忘了，最乾脆的做法是刪掉該帳號重建（管理者帳號可以改 <code>.env</code> 後重跑 migrate）。</p>
+      </details>
+
+      <details>
+        <summary>重開機之後網站沒起來</summary>
+        <p>確認服務有被 enable：<code>systemctl is-enabled iso26262</code> 應該回 <code>enabled</code>。如果回 <code>disabled</code>，執行 <code>sudo systemctl enable iso26262</code>。</p>
+      </details>
+
+      <details>
+        <summary>這台機器可以同時跑 Render 版本嗎？</summary>
+        <p>可以，兩者互不影響，但它們是<b>各自獨立的資料庫</b>——在自架版做的測驗成績不會出現在 Render 版，反之亦然。建議挑一邊當正式使用，另一邊當測試。</p>
+      </details>
+    </section>
+
+    <footer class="site-footer">ISO 26262 學習網站 ・ Ubuntu 自架部署手冊 v1.0</footer>
+  </main>
+</div>
+
+<script src="../public/assets/js/theme-toggle.js"></script>
+<script src="../public/assets/js/toc-scrollspy.js"></script>
+</body>
+</html>
