@@ -10,7 +10,6 @@ const adminRoutes = require('./routes/admin-users');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const isProduction = process.env.NODE_ENV === 'production';
 
 app.set('trust proxy', 1);
 app.use(express.json());
@@ -24,7 +23,11 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: isProduction,
+      // 'auto'：連線是 HTTPS 才加 Secure 旗標。不可以綁 NODE_ENV——自架在 Ubuntu 上是
+      // 純 HTTP 但一樣是 production，寫死 secure: true 會讓 express-session 整個不發
+      // session cookie，症狀是登入看似成功、下一個請求卻被當成未登入。
+      // 搭配上面的 trust proxy，Render 那邊（HTTPS 經反向代理）仍然拿得到 Secure cookie。
+      secure: 'auto',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     },
   })

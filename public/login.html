@@ -125,7 +125,14 @@
 
     const res = await raw('/api/auth/change-password', { method: 'POST', body: { newPassword: p1 } });
     if (!res.ok) {
-      errorEl.textContent = '更新密碼失敗，請重新整理頁面再試一次。';
+      // 分開講，否則「更新失敗」會把 session 問題和密碼問題混成同一句話，無從查起。
+      if (res.status === 401) {
+        errorEl.textContent = '登入狀態已失效，瀏覽器可能沒有保存 session cookie。請重新登入一次；若反覆發生，請檢查伺服器設定。';
+      } else if (res.data && res.data.error === 'password_too_short') {
+        errorEl.textContent = '新密碼至少要 8 個字元。';
+      } else {
+        errorEl.textContent = '更新密碼失敗（' + res.status + '）。請重新整理頁面再試一次。';
+      }
       return;
     }
     window.location.href = '/index.html';
