@@ -4,6 +4,15 @@
   const ACCENT_SOFT = '#DFEDF1';
   const LINE = '#D3DEE2';
 
+  // 畫不出圖的時候，把 canvas 換成一段說明。留著空 canvas 只會變成一塊無法解讀的留白。
+  function replaceCanvas(canvas, message) {
+    const note = document.createElement('p');
+    note.className = 'lede';
+    note.style.margin = '0';
+    note.textContent = message;
+    canvas.parentNode.replaceChild(note, canvas);
+  }
+
   async function renderPersonalDashboard(chartCanvasId, cardsContainerId) {
     const circles = window.ISO26262_CIRCLES || [];
     let summary = { circles: {} };
@@ -20,18 +29,28 @@
     });
 
     const canvas = document.getElementById(chartCanvasId);
-    if (canvas && window.Chart) {
-      new window.Chart(canvas, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{ label: '最佳成績 %', data: data, backgroundColor: ACCENT_SOFT, borderColor: ACCENT, borderWidth: 1.5, borderRadius: 6 }],
-        },
-        options: {
-          scales: { y: { beginAtZero: true, max: 100, grid: { color: LINE } }, x: { grid: { display: false } } },
-          plugins: { legend: { display: false } },
-        },
-      });
+    const hasAnyAttempt = Object.keys(summary.circles || {}).length > 0;
+
+    if (canvas) {
+      if (!window.Chart) {
+        // 以前這裡是靜默跳過，結果就是一塊沒被畫過的空白畫布，使用者無從得知發生什麼事。
+        replaceCanvas(canvas, '圖表元件載入失敗，因此這裡沒有圖。下方每一章的卡片仍然會顯示你的成績。');
+      } else if (!hasAnyAttempt) {
+        // 一筆紀錄都沒有時，畫出來會是八根長度為 0 的長條，看起來跟壞掉沒兩樣。
+        replaceCanvas(canvas, '還沒有任何測驗紀錄。往下挑一章開始作答，成績就會累積到這裡。');
+      } else {
+        new window.Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{ label: '最佳成績 %', data: data, backgroundColor: ACCENT_SOFT, borderColor: ACCENT, borderWidth: 1.5, borderRadius: 6 }],
+          },
+          options: {
+            scales: { y: { beginAtZero: true, max: 100, grid: { color: LINE } }, x: { grid: { display: false } } },
+            plugins: { legend: { display: false } },
+          },
+        });
+      }
     }
 
     const cardsContainer = document.getElementById(cardsContainerId);

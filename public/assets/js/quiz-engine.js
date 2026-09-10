@@ -63,6 +63,30 @@
     return el;
   }
 
+  // 就地把測驗還原成未作答狀態。每一項都對應提交時設定的某個狀態，
+  // 少清一項就會留下「上一輪的痕跡」，例如選項還亮著紅框卻可以重新點選。
+  function resetQuiz(list, submitBtn, summary) {
+    Array.prototype.forEach.call(list.querySelectorAll('.quiz-question'), function (qEl) {
+      qEl.classList.remove('answered', 'correct', 'incorrect');
+      Array.prototype.forEach.call(qEl.querySelectorAll('.quiz-option'), function (opt) {
+        opt.classList.remove('is-correct', 'is-selected');
+      });
+      Array.prototype.forEach.call(qEl.querySelectorAll('input[type="radio"]'), function (input) {
+        input.checked = false;
+      });
+      const verdict = qEl.querySelector('.feedback-verdict');
+      if (verdict) verdict.textContent = '';
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = '提交答案';
+
+    summary.style.display = 'none';
+    summary.innerHTML = '';
+
+    list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function mount(containerId, circleId, questions) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -136,7 +160,25 @@
       summary.innerHTML =
         '<p class="score-big">' + percentage + '%</p>' +
         '<p>答對 ' + correctCount + ' / ' + total + ' 題</p>';
+
+      const retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.className = 'btn';
+      retryBtn.style.marginTop = '.9rem';
+      retryBtn.textContent = '再測一次';
+      retryBtn.addEventListener('click', function () { resetQuiz(list, submitBtn, summary); });
+      summary.appendChild(retryBtn);
+
+      const retryHint = document.createElement('p');
+      retryHint.style.fontSize = '.82rem';
+      retryHint.style.margin = '.5rem 0 0';
+      retryHint.textContent = '重測會另外存一筆紀錄，首頁進度取的是最佳成績，不會蓋掉這次的分數。';
+      summary.appendChild(retryHint);
+
       summary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // 這行原本停在更早那次的成績，重測後會跟眼前的結果互相矛盾，所以一併更新。
+      lastAttemptNote.textContent = '你剛才的成績：' + percentage + '%（' + new Date().toLocaleString('zh-TW') + '）';
 
       submitBtn.disabled = true;
       submitBtn.textContent = '已提交';
