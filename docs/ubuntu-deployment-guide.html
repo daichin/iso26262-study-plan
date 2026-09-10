@@ -41,6 +41,7 @@
       <li><a href="#systemd"><span class="n">6</span><span>設成開機自動啟動</span></a></li>
       <li><a href="#lan"><span class="n">7</span><span>讓區網其他機器連得到</span></a></li>
       <li><a href="#ongoing"><span class="n">－</span><span>日後的操作</span></a></li>
+      <li><a href="#uninstall"><span class="n">－</span><span>完整移除</span></a></li>
       <li><a href="#faq"><span class="n">？</span><span>常見問題</span></a></li>
     </ol>
   </nav>
@@ -320,6 +321,54 @@ sudo systemctl restart iso26262</div>
       <div class="cmd">pg_dump -U iso26262 -h localhost iso26262 > ~/iso26262-backup-$(date +%F).sql</div>
       <p>還原：</p>
       <div class="cmd">psql -U iso26262 -h localhost iso26262 &lt; ~/iso26262-backup-2026-09-10.sql</div>
+    </section>
+
+    <section id="uninstall">
+      <h2 class="step">完整移除</h2>
+      <p class="lede">把這個網站從機器上徹底清掉，包含資料。四個部分彼此獨立，照順序做即可。</p>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 資料刪掉就沒了</p>
+        <p>所有帳號與測驗成績都在資料庫裡，刪掉之後<b>沒有任何辦法救回來</b>。就算只有一點點懷疑之後可能還要用，先做一份備份再往下走——備份檔很小，留著幾乎不佔空間：</p>
+        <div class="cmd">pg_dump -U iso26262 -h localhost iso26262 &gt; ~/iso26262-final-backup.sql</div>
+      </div>
+
+      <h3>1. 停止並移除服務</h3>
+      <p>先停服務，否則資料庫還有連線，下一步會刪不掉。</p>
+      <div class="cmd">sudo systemctl stop iso26262
+sudo systemctl disable iso26262
+sudo rm -f /etc/systemd/system/iso26262.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed</div>
+
+      <h3>2. 刪除資料庫與資料庫使用者</h3>
+      <p>順序不能反——角色是資料庫的擁有者，資料庫還在的時候刪不掉角色。</p>
+      <div class="cmd">sudo -u postgres psql -c "DROP DATABASE IF EXISTS iso26262;"
+sudo -u postgres psql -c "DROP ROLE IF EXISTS iso26262;"</div>
+      <p>如果出現 <code>database "iso26262" is being accessed by other users</code>，代表還有連線沒斷。確認第 1 步的服務真的停了，也確認自己沒有開著 <code>psql</code> 連在上面。</p>
+
+      <h3>3. 刪除程式碼</h3>
+      <div class="cmd">sudo rm -rf ~/iso26262-study-plan</div>
+      <p>裝在別的位置就換成該路徑，例如 <code>/opt/iso26262-study-plan</code>。<b>執行前先看清楚路徑</b>，<code>rm -rf</code> 打錯不會問你第二次。</p>
+
+      <h3>4. 收回防火牆規則</h3>
+      <p>只有當初為了讓區網連入而開過埠才需要做。埠號換成你實際用的那個。</p>
+      <div class="cmd">sudo ufw delete allow 3000/tcp</div>
+
+      <h3>要不要順便移除 PostgreSQL 和 Node.js？</h3>
+      <div class="note warn">
+        <p class="note-title">⚠ 先確認沒有別人在用，再決定</p>
+        <p>這兩個是<b>共用的系統套件</b>，不是這個網站專屬的。直接 <code>apt purge</code> 很可能弄壞這台機器上的其他服務——監控系統、其他網站、排程工具都可能依賴它們。</p>
+      </div>
+      <p>先看資料庫裡還有沒有別人的東西。除了 <code>postgres</code>、<code>template0</code>、<code>template1</code> 這三個內建的以外，還有其他資料庫就<b>不要移除</b> PostgreSQL：</p>
+      <div class="cmd">sudo -u postgres psql -c "\l"</div>
+      <p>再看還有沒有別的程式在用 Node：</p>
+      <div class="cmd">ps aux | grep -v grep | grep node</div>
+      <p>兩邊都確認乾淨、而且你確定這台機器不再需要它們，才執行移除：</p>
+      <div class="cmd">sudo apt purge -y postgresql postgresql-*
+sudo apt purge -y nodejs npm
+sudo apt autoremove -y</div>
+      <p>只要有一絲不確定，就<b>把這兩個留著</b>。它們閒置時幾乎不耗資源，留著的代價遠低於弄壞別的服務。</p>
     </section>
 
     <section id="faq">
