@@ -6,12 +6,12 @@ const { requireAuth } = require('../middleware/require-auth');
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) {
+  const { loginId, password } = req.body || {};
+  if (!loginId || !password) {
     return res.status(400).json({ error: 'missing_fields' });
   }
 
-  const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+  const result = await pool.query('SELECT * FROM users WHERE login_id = $1', [loginId]);
   const user = result.rows[0];
   if (!user) {
     return res.status(401).json({ error: 'invalid_credentials' });
@@ -27,8 +27,7 @@ router.post('/login', async (req, res) => {
 
   res.json({
     id: user.id,
-    name: user.name,
-    email: user.email,
+    loginId: user.login_id,
     role: user.role,
     mustChangePassword: user.must_change_password,
   });
@@ -42,7 +41,7 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   const result = await pool.query(
-    'SELECT id, name, email, role, must_change_password FROM users WHERE id = $1',
+    'SELECT id, login_id, role, must_change_password FROM users WHERE id = $1',
     [req.session.userId]
   );
   const user = result.rows[0];
@@ -51,8 +50,7 @@ router.get('/me', requireAuth, async (req, res) => {
   }
   res.json({
     id: user.id,
-    name: user.name,
-    email: user.email,
+    loginId: user.login_id,
     role: user.role,
     mustChangePassword: user.must_change_password,
   });

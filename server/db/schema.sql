@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  name TEXT NOT NULL,
+  login_id TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
   must_change_password BOOLEAN NOT NULL DEFAULT true,

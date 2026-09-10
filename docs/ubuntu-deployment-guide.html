@@ -179,7 +179,7 @@ npm install</div>
       <p class="lede">環境變數決定資料庫接哪裡、第一個管理者帳號是誰。</p>
       <div class="cmd">cp .env.example .env
 nano .env</div>
-      <p>把五個值填成你自己的：</p>
+      <p>把四個值填成你自己的：</p>
 
       <div class="table-wrap">
         <table>
@@ -187,8 +187,7 @@ nano .env</div>
           <tbody>
             <tr><td><code>DATABASE_URL</code></td><td><code>postgresql://iso26262:你的密碼@localhost:5432/iso26262</code></td><td class="src">步驟 1</td></tr>
             <tr><td><code>SESSION_SECRET</code></td><td>隨手打 40 個以上的英數字，不用記住</td><td class="src">自己產生</td></tr>
-            <tr><td><code>ADMIN_EMAIL</code></td><td>你要用來登入的 Email</td><td class="src">自己決定</td></tr>
-            <tr><td><code>ADMIN_NAME</code></td><td>顯示在頁首的名字</td><td class="src">自己決定</td></tr>
+            <tr><td><code>ADMIN_ID</code></td><td>你要用來登入的 ID，也會顯示在頁首</td><td class="src">自己決定</td></tr>
             <tr><td><code>ADMIN_INITIAL_PASSWORD</code></td><td>第一次登入用的臨時密碼</td><td class="src">自己決定</td></tr>
           </tbody>
         </table>
@@ -209,12 +208,12 @@ nano .env</div>
       <p>成功的話會看到：</p>
       <div class="cmd">執行 schema.sql 建立資料表...
 資料表建立完成。
-已建立管理者帳號：你填的 Email（第一次登入會強制要求改密碼）
+已建立管理者帳號：你填的 ID（第一次登入會強制要求改密碼）
 Migration 完成。</div>
 
       <div class="note good">
         <p class="note-title">✓ 這一步只需要做一次</p>
-        <p>腳本會偵測管理者 Email 是否已存在，重複執行不會出錯也不會重複建立，但沒有必要。</p>
+        <p>腳本會偵測管理者 ID 是否已存在，重複執行不會出錯也不會重複建立，但沒有必要。</p>
       </div>
     </section>
 
@@ -343,13 +342,13 @@ sudo systemctl restart iso26262</div>
 
       <details>
         <summary>登入時顯示帳號或密碼不正確</summary>
-        <p>先確認 <code>npm run migrate</code> 有成功跑過（步驟 4）。登入要用的是 <code>ADMIN_EMAIL</code> 與 <code>ADMIN_INITIAL_PASSWORD</code>，注意大小寫。改過密碼之後就要用新密碼。</p>
+        <p>先確認 <code>npm run migrate</code> 有成功跑過（步驟 4）。登入要用的是 <code>ADMIN_ID</code> 與 <code>ADMIN_INITIAL_PASSWORD</code>，注意大小寫。改過密碼之後就要用新密碼。</p>
       </details>
 
       <details>
         <summary>忘記密碼了</summary>
         <p>目前沒有自助重設流程。直接連進資料庫把該帳號標記成需要改密碼，下次登入時用臨時密碼進去即可：</p>
-        <p><code>psql -U iso26262 -h localhost iso26262 -c "UPDATE users SET must_change_password = true WHERE email = 'you@example.com';"</code></p>
+        <p><code>psql -U iso26262 -h localhost iso26262 -c "UPDATE users SET must_change_password = true WHERE login_id = '該成員的ID';"</code></p>
         <p>如果連臨時密碼也忘了，最乾脆的做法是刪掉該帳號重建（管理者帳號可以改 <code>.env</code> 後重跑 migrate）。</p>
       </details>
 

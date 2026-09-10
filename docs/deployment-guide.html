@@ -35,7 +35,7 @@
       <li><a href="#github"><span class="n">0</span><span>上傳到 GitHub</span></a></li>
       <li><a href="#neon"><span class="n">1</span><span>建立資料庫</span></a></li>
       <li><a href="#render"><span class="n">2</span><span>建立網站主機</span></a></li>
-      <li><a href="#envvars"><span class="n">3</span><span>貼上五項設定</span></a></li>
+      <li><a href="#envvars"><span class="n">3</span><span>貼上四項設定</span></a></li>
       <li><a href="#migrate"><span class="n">4</span><span>建立資料表與管理者</span></a></li>
       <li><a href="#first-login"><span class="n">5</span><span>第一次登入</span></a></li>
       <li><a href="#invite"><span class="n">6</span><span>新增團隊成員</span></a></li>
@@ -94,7 +94,7 @@
           <text x="460" y="160" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">讀取 render.yaml</text>
           <line x1="360" y1="180" x2="560" y2="180" stroke="currentColor" stroke-width="1" opacity=".4"/>
           <text x="460" y="204" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">Environment</text>
-          <text x="460" y="224" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">五項設定值</text>
+          <text x="460" y="224" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="11.5" fill="currentColor">四項設定值</text>
           <text x="460" y="252" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="10.5" fill="currentColor" opacity=".75">執行 Express + npm run migrate</text>
 
           <path d="M240,80 H330" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#dm-ah)"/>
@@ -108,7 +108,7 @@
           <text x="766" y="172" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="14" font-weight="700" fill="#0F6079">網站上線</text>
           <text x="766" y="194" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="currentColor">*.onrender.com</text>
         </svg>
-        <figcaption><b>沒有 GitHub Actions，Render 直接讀取你的儲存庫。</b>跟一般「按鈕部署」不同的是，這裡的五項設定值是直接貼在 Render 後台的 Environment 分頁，不是貼在 GitHub 裡。</figcaption>
+        <figcaption><b>沒有 GitHub Actions，Render 直接讀取你的儲存庫。</b>跟一般「按鈕部署」不同的是，這裡的四項設定值是直接貼在 Render 後台的 Environment 分頁，不是貼在 GitHub 裡。</figcaption>
       </figure>
     </section>
 
@@ -162,7 +162,7 @@ git push -u origin main</div>
     </section>
 
     <section id="envvars">
-      <h2 class="step"><span class="num">3</span>貼上五項設定</h2>
+      <h2 class="step"><span class="num">3</span>貼上四項設定</h2>
       <p class="lede">到剛剛建立的服務頁面，左側點 <b>Environment</b>，把記事本裡的東西貼進去。名稱必須<b>一字不差</b>，包含大小寫與底線。</p>
 
       <div class="table-wrap">
@@ -171,8 +171,7 @@ git push -u origin main</div>
           <tbody>
             <tr><td><code>DATABASE_URL</code></td><td>Neon 連線字串</td><td class="src">步驟 1</td></tr>
             <tr><td><code>SESSION_SECRET</code></td><td>保護登入狀態的隨機字串</td><td class="src">自己產生</td></tr>
-            <tr><td><code>ADMIN_EMAIL</code></td><td>第一個管理者帳號的 Email</td><td class="src">自己決定</td></tr>
-            <tr><td><code>ADMIN_NAME</code></td><td>第一個管理者的姓名</td><td class="src">自己決定</td></tr>
+            <tr><td><code>ADMIN_ID</code></td><td>第一個管理者的登入 ID</td><td class="src">自己決定</td></tr>
             <tr><td><code>ADMIN_INITIAL_PASSWORD</code></td><td>管理者第一次登入的臨時密碼</td><td class="src">自己決定</td></tr>
           </tbody>
         </table>
@@ -193,7 +192,7 @@ git push -u origin main</div>
 
       <ol class="steps">
         <li>回到本機的專案資料夾，把 <code>.env.example</code> 複製一份成 <code>.env</code>。</li>
-        <li>打開 <code>.env</code>，把 <code>DATABASE_URL</code>、<code>ADMIN_EMAIL</code>、<code>ADMIN_NAME</code>、<code>ADMIN_INITIAL_PASSWORD</code> 填成<b>跟你剛剛貼到 Render 的完全一樣的值</b>。</li>
+        <li>打開 <code>.env</code>，把 <code>DATABASE_URL</code>、<code>ADMIN_ID</code>、<code>ADMIN_INITIAL_PASSWORD</code> 填成<b>跟你剛剛貼到 Render 的完全一樣的值</b>。</li>
         <li>執行：</li>
       </ol>
       <div class="cmd">npm install
@@ -204,7 +203,7 @@ npm run migrate</div>
 
       <div class="note warn">
         <p class="note-title">⚠ 這一步只需要做一次</p>
-        <p>之後不要重複執行 <code>npm run migrate</code>——腳本會偵測 <code>ADMIN_EMAIL</code> 是否已存在，重複執行不會出錯，但也沒有必要。</p>
+        <p>之後不要重複執行 <code>npm run migrate</code>——腳本會偵測 <code>ADMIN_ID</code> 是否已存在，重複執行不會出錯，但也沒有必要。</p>
       </div>
     </section>
 
@@ -212,7 +211,7 @@ npm run migrate</div>
       <h2 class="step"><span class="num">5</span>第一次登入</h2>
       <ol class="steps">
         <li>打開 Render 服務頁面最上方顯示的網址（例如 <code>https://iso26262-study-plan.onrender.com</code>）。<b>第一次可能要等將近 1 分鐘</b>，這是免費方案的喚醒時間。</li>
-        <li>用 <code>ADMIN_EMAIL</code> 與 <code>ADMIN_INITIAL_PASSWORD</code> 登入。</li>
+        <li>用 <code>ADMIN_ID</code> 與 <code>ADMIN_INITIAL_PASSWORD</code> 登入。</li>
         <li>系統會<b>立刻要求你設定新密碼</b>，請設定一組只有你知道的。</li>
       </ol>
       <div class="note warn">
@@ -223,7 +222,7 @@ npm run migrate</div>
 
     <section id="invite">
       <h2 class="step"><span class="num">6</span>新增團隊成員</h2>
-      <p class="lede">登入後點導覽列的<b>成員管理</b>，幫團隊成員建立帳號（姓名、Email、臨時密碼）。他們用臨時密碼登入後，一樣會被強制要求改成自己的密碼。</p>
+      <p class="lede">登入後點導覽列的<b>成員管理</b>，幫團隊成員建立帳號（ID、臨時密碼）。他們用臨時密碼登入後，一樣會被強制要求改成自己的密碼。</p>
       <p>想掌握大家讀到哪，點導覽列的<b>團隊進度</b>，會看到每個人在每一圈的最新成績。</p>
     </section>
 
@@ -253,17 +252,17 @@ git push</div>
 
       <details>
         <summary>部署失敗，Render 顯示紅色 Failed</summary>
-        <p>點進該次部署看 Logs。最常見原因是環境變數缺少或名稱打錯，回到步驟 3 檢查五項設定的名稱是否完全一致（大小寫、底線）。</p>
+        <p>點進該次部署看 Logs。最常見原因是環境變數缺少或名稱打錯，回到步驟 3 檢查四項設定的名稱是否完全一致（大小寫、底線）。</p>
       </details>
 
       <details>
         <summary>登入時顯示帳號或密碼不正確</summary>
-        <p>確認 <code>npm run migrate</code> 已經成功執行過（步驟 4），且輸入的是 <code>ADMIN_EMAIL</code> 與 <code>ADMIN_INITIAL_PASSWORD</code> 當初設定的值，注意大小寫。</p>
+        <p>確認 <code>npm run migrate</code> 已經成功執行過（步驟 4），且輸入的是 <code>ADMIN_ID</code> 與 <code>ADMIN_INITIAL_PASSWORD</code> 當初設定的值，注意大小寫。</p>
       </details>
 
       <details>
         <summary>忘記自己改過的密碼怎麼辦</summary>
-        <p>目前版本沒有「忘記密碼」自助流程。請直接到 Neon 的 SQL Editor，把該帳號的 <code>must_change_password</code> 欄位改回 <code>true</code>，該使用者下次登入原本的臨時密碼仍能用（若也忘記臨時密碼，需要請管理者重新用同一個 Email 手動更新一筆 <code>users</code> 資料，或刪除後重建帳號）。</p>
+        <p>目前版本沒有「忘記密碼」自助流程。請直接到 Neon 的 SQL Editor，把該帳號的 <code>must_change_password</code> 欄位改回 <code>true</code>，該使用者下次登入原本的臨時密碼仍能用（若也忘記臨時密碼，需要請管理者重新用同一個 ID 手動更新一筆 <code>users</code> 資料，或刪除後重建帳號）。</p>
       </details>
 
       <details>

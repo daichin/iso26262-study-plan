@@ -10,15 +10,23 @@ router.use(requireAdmin);
 
 router.get('/users', async (req, res) => {
   const result = await pool.query(
-    'SELECT id, name, email, role, must_change_password, created_at FROM users ORDER BY created_at ASC'
+    'SELECT id, login_id, role, must_change_password, created_at FROM users ORDER BY created_at ASC'
   );
-  res.json(result.rows);
+  res.json(
+    result.rows.map((user) => ({
+      id: user.id,
+      loginId: user.login_id,
+      role: user.role,
+      mustChangePassword: user.must_change_password,
+      createdAt: user.created_at,
+    }))
+  );
 });
 
 router.post('/users', async (req, res) => {
-  const { name, email, initialPassword, role } = req.body || {};
+  const { loginId, initialPassword, role } = req.body || {};
 
-  if (!name || !email || !initialPassword) {
+  if (!loginId || !initialPassword) {
     return res.status(400).json({ error: 'missing_fields' });
   }
   if (initialPassword.length < 8) {
@@ -26,25 +34,32 @@ router.post('/users', async (req, res) => {
   }
   const finalRole = role === 'admin' ? 'admin' : 'member';
 
-  const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+  const existing = await pool.query('SELECT id FROM users WHERE login_id = $1', [loginId]);
   if (existing.rows.length > 0) {
-    return res.status(409).json({ error: 'email_taken' });
+    return res.status(409).json({ error: 'login_id_taken' });
   }
 
   const passwordHash = await hashPassword(initialPassword);
   const result = await pool.query(
-    `INSERT INTO users (email, name, password_hash, role, must_change_password)
-     VALUES ($1, $2, $3, $4, true)
-     RETURNING id, name, email, role, must_change_password, created_at`,
-    [email, name, passwordHash, finalRole]
+    `INSERT INTO users (login_id, password_hash, role, must_change_password)
+     VALUES ($1, $2, $3, true)
+     RETURNING id, login_id, role, must_change_password, created_at`,
+    [loginId, passwordHash, finalRole]
   );
+  const user = result.rows[0];
 
-  res.status(201).json(result.rows[0]);
+  res.status(201).json({
+    id: user.id,
+    loginId: user.login_id,
+    role: user.role,
+    mustChangePassword: user.must_change_password,
+    createdAt: user.created_at,
+  });
 });
 
 router.get('/team-progress', async (req, res) => {
   const usersResult = await pool.query(
-    "SELECT id, name, email FROM users WHERE role = 'member' OR role = 'admin' ORDER BY name ASC"
+    "SELECT id, login_id FROM users WHERE role = 'member' OR role = 'admin' ORDER BY login_id ASC"
   );
 
   const attemptsResult = await pool.query(
@@ -67,8 +82,7 @@ router.get('/team-progress', async (req, res) => {
     const completed = CIRCLE_IDS.filter((id) => circles[id]).length;
     return {
       id: user.id,
-      name: user.name,
-      email: user.email,
+      loginId: user.login_id,
       circles,
       completedCircles: completed,
       overallPercentage: Math.round((completed / CIRCLE_IDS.length) * 10000) / 100,

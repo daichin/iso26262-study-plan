@@ -218,7 +218,7 @@
 
     var roleBadge = me.role === 'admin' ? '<span class="role-badge">ADMIN</span>' : '';
     userBoxes.forEach(function (box) {
-      box.innerHTML = '<b>' + escapeHtml(me.name) + '</b> ' + roleBadge;
+      box.innerHTML = '<b>' + escapeHtml(me.loginId) + '</b> ' + roleBadge;
     });
 
     if (me.mustChangePassword && current !== 'change-password') {

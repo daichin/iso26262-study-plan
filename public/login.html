@@ -21,10 +21,10 @@
   <div class="login-card">
     <div id="loginPane">
       <h1>ISO 26262 學習網站</h1>
-      <p class="lede">請用管理者提供的帳號密碼登入。</p>
+      <p class="lede">請用管理者提供的 ID 與密碼登入。</p>
       <div class="form-field">
-        <label for="email">Email</label>
-        <input id="email" type="email" autocomplete="username">
+        <label for="loginId">ID</label>
+        <input id="loginId" type="text" autocomplete="username">
       </div>
       <div class="form-field">
         <label for="password">密碼</label>
@@ -86,19 +86,19 @@
   }
 
   document.getElementById('loginBtn').addEventListener('click', async function () {
-    const email = document.getElementById('email').value.trim();
+    const loginId = document.getElementById('loginId').value.trim();
     const password = document.getElementById('password').value;
     const errorEl = document.getElementById('loginError');
     errorEl.textContent = '';
 
-    if (!email || !password) {
-      errorEl.textContent = '請輸入 Email 與密碼。';
+    if (!loginId || !password) {
+      errorEl.textContent = '請輸入 ID 與密碼。';
       return;
     }
 
-    const res = await raw('/api/auth/login', { method: 'POST', body: { email: email, password: password } });
+    const res = await raw('/api/auth/login', { method: 'POST', body: { loginId: loginId, password: password } });
     if (!res.ok) {
-      errorEl.textContent = '帳號或密碼不正確，請再試一次。';
+      errorEl.textContent = 'ID 或密碼不正確，請再試一次。';
       return;
     }
     if (res.data.mustChangePassword) {

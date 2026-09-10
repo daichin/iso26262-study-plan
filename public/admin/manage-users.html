@@ -24,12 +24,8 @@
   <section id="add-user">
     <h2 class="step">新增成員</h2>
     <div class="form-field">
-      <label for="name">姓名</label>
-      <input id="name" type="text">
-    </div>
-    <div class="form-field">
-      <label for="email">Email</label>
-      <input id="email" type="email">
+      <label for="loginId">ID（成員登入時輸入的帳號）</label>
+      <input id="loginId" type="text" autocomplete="off">
     </div>
     <div class="form-field">
       <label for="initialPassword">臨時密碼（至少 8 碼）</label>
@@ -63,37 +59,38 @@
   async function loadUsers() {
     const users = await window.ISO26262Api.get('/api/admin/users');
     const container = document.getElementById('userTable');
-    let html = '<table><thead><tr><th>姓名</th><th>Email</th><th>角色</th><th>狀態</th><th>建立時間</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>ID</th><th>角色</th><th>狀態</th><th>建立時間</th></tr></thead><tbody>';
     users.forEach(function (u) {
-      html += '<tr><td>' + u.name + '</td><td>' + u.email + '</td><td><code>' + u.role + '</code></td>' +
-        '<td>' + (u.must_change_password ? '尚未設定自己的密碼' : '已啟用') + '</td>' +
-        '<td class="src">' + new Date(u.created_at).toLocaleDateString('zh-TW') + '</td></tr>';
+      html += '<tr><td><b>' + u.loginId + '</b></td><td><code>' + u.role + '</code></td>' +
+        '<td>' + (u.mustChangePassword ? '尚未設定自己的密碼' : '已啟用') + '</td>' +
+        '<td class="src">' + new Date(u.createdAt).toLocaleDateString('zh-TW') + '</td></tr>';
     });
     html += '</tbody></table>';
     container.innerHTML = html;
   }
 
   document.getElementById('addUserBtn').addEventListener('click', async function () {
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
+    const loginId = document.getElementById('loginId').value.trim();
     const initialPassword = document.getElementById('initialPassword').value;
     const role = document.getElementById('role').value;
     const errorEl = document.getElementById('addUserError');
     errorEl.textContent = '';
 
-    if (!name || !email || !initialPassword) {
-      errorEl.textContent = '請填寫姓名、Email 與臨時密碼。';
+    if (!loginId || !initialPassword) {
+      errorEl.textContent = '請填寫 ID 與臨時密碼。';
       return;
     }
 
     try {
-      await window.ISO26262Api.post('/api/admin/users', { name: name, email: email, initialPassword: initialPassword, role: role });
-      document.getElementById('name').value = '';
-      document.getElementById('email').value = '';
+      await window.ISO26262Api.post('/api/admin/users', { loginId: loginId, initialPassword: initialPassword, role: role });
+      document.getElementById('loginId').value = '';
       document.getElementById('initialPassword').value = '';
       loadUsers();
     } catch (e) {
-      errorEl.textContent = e.data && e.data.error === 'email_taken' ? '這個 Email 已經有帳號了。' : '建立失敗，請確認欄位是否正確。';
+      const code = e.data && e.data.error;
+      if (code === 'login_id_taken') errorEl.textContent = '這個 ID 已經有人用了，請換一個。';
+      else if (code === 'password_too_short') errorEl.textContent = '臨時密碼至少要 8 個字元。';
+      else errorEl.textContent = '建立失敗，請確認欄位是否正確。';
     }
   });
 

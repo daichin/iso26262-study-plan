@@ -68,7 +68,7 @@
     html += '<th>整體完成率</th></tr></thead><tbody>';
 
     data.members.forEach(function (member) {
-      html += '<tr><td><b>' + member.name + '</b><br><span class="src">' + member.email + '</span></td>';
+      html += '<tr><td><b>' + member.loginId + '</b></td>';
       circles.forEach(function (c) {
         const cell = member.circles[c.id];
         html += '<td>' + (cell ? cell.percentage + '%' : '<span class="src">—</span>') + '</td>';
