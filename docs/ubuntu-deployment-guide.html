@@ -353,6 +353,14 @@ sudo systemctl restart iso26262</div>
       </details>
 
       <details>
+        <summary>npm start 出現 EADDRINUSE: address already in use :::3000</summary>
+        <p>代表 3000 埠已經有程式在聽了。先查是誰：</p>
+        <p><code>sudo ss -ltnp | grep :3000</code></p>
+        <p><b>最常見的原因是網站已經在跑了。</b>如果你已經做完步驟 6，systemd 就會一直把它拉著，這時候不需要也不應該再手動 <code>npm start</code>——直接開瀏覽器就好。用 <code>systemctl status iso26262</code> 確認，看到 <code>active (running)</code> 就是正常的。</p>
+        <p>如果佔用的是<b>別的程式</b>（Grafana 預設也用 3000），那就改用其他埠：編輯 <code>.env</code> 把 <code>PORT</code> 改成例如 <code>3100</code>，然後 <code>sudo systemctl restart iso26262</code>，網址也跟著換成 <code>:3100</code>。防火牆若開過 3000，記得改開新的埠。</p>
+      </details>
+
+      <details>
         <summary>重開機之後網站沒起來</summary>
         <p>確認服務有被 enable：<code>systemctl is-enabled iso26262</code> 應該回 <code>enabled</code>。如果回 <code>disabled</code>，執行 <code>sudo systemctl enable iso26262</code>。</p>
       </details>
