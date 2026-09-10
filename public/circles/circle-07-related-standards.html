@@ -16,7 +16,7 @@
   <div class="masthead-inner">
     <p class="eyebrow">第 7 圈・鄰近標準</p>
     <h1>鄰近標準</h1>
-    <p class="standfirst">認識會跟你工作交疊、但不是 ISO 26262 本身的標準與規範，理解彼此的分工與關係。</p>
+    <p class="standfirst">MISRA ・ ASPICE ・ SOTIF ・ ISO/SAE 21434 ・ IEC 61508 ・ AUTOSAR — 這些不是 ISO 26262，但會出現在同一份專案要求清單上。搞清楚每一份在回答什麼問題，你才知道遇到事情該翻哪一本。</p>
   </div>
 </header>
 
@@ -27,11 +27,15 @@
     <ol id="tocList">
       <li><a href="#overview"><span class="n">－</span><span>總覽</span></a></li>
       <li><a href="#map"><span class="n">－</span><span>關係圖</span></a></li>
-      <li><a href="#misra"><span class="n">1</span><span>MISRA C/C++</span></a></li>
-      <li><a href="#aspice"><span class="n">2</span><span>Automotive SPICE</span></a></li>
-      <li><a href="#risk-extensions"><span class="n">3</span><span>SOTIF ・ ISO/SAE 21434</span></a></li>
-      <li><a href="#iec61508"><span class="n">4</span><span>IEC 61508</span></a></li>
-      <li><a href="#autosar"><span class="n">5</span><span>AUTOSAR</span></a></li>
+      <li><a href="#iec61508"><span class="n">1</span><span>IEC 61508</span></a></li>
+      <li><a href="#sotif"><span class="n">2</span><span>SOTIF（ISO 21448）</span></a></li>
+      <li><a href="#cybersecurity"><span class="n">3</span><span>ISO/SAE 21434</span></a></li>
+      <li><a href="#misra"><span class="n">4</span><span>MISRA C/C++</span></a></li>
+      <li><a href="#aspice"><span class="n">5</span><span>Automotive SPICE</span></a></li>
+      <li><a href="#autosar"><span class="n">6</span><span>AUTOSAR</span></a></li>
+      <li><a href="#compare"><span class="n">－</span><span>哪份文件回答哪個問題</span></a></li>
+      <li><a href="#faq"><span class="n">－</span><span>常見混淆</span></a></li>
+      <li><a href="#sources"><span class="n">－</span><span>本章出處</span></a></li>
       <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
     </ol>
   </nav>
@@ -40,6 +44,10 @@
     <section id="overview">
       <h2 class="step">總覽</h2>
       <p class="lede">這一圈不是 ISO 26262 本身，而是實務上會跟你的工作產生交集的其他標準與規範。理解彼此的分工，能幫助你判斷「這件事該查哪份文件」。</p>
+
+      <p>新人最常見的困惑是把這些東西全部混成一團「車廠的一堆規定」。但它們的性質差很多：有的是<b>要求標準</b>（規定你必須做到什麼，例如 ISO 26262、ISO/SAE 21434），有的是<b>評估模型</b>（衡量你的流程成熟度，例如 ASPICE），有的只是<b>編碼指引</b>（限制語言用法，例如 MISRA），還有的其實是<b>軟體平台</b>（提供現成機制，例如 AUTOSAR）。搞錯類別，就會問出「我們有 AUTOSAR，是不是就符合 ISO 26262 了」這種答案是否定的問題。</p>
+
+      <p>更實際的判斷方式是問「這份文件在回答什麼問題」。ISO 26262 回答「故障會不會害人、要多嚴謹地開發」；SOTIF 回答「就算沒故障，設計本身夠不夠用」；ISO/SAE 21434 回答「有人蓄意攻擊會怎樣」。三個問題彼此不重疊，所以三份文件是互補關係，不是誰取代誰。本章最後的對照表就是照這個角度整理的。</p>
     </section>
 
     <section id="map">
@@ -99,49 +107,185 @@
       </figure>
     </section>
 
-    <section id="misra">
-      <h2 class="step"><span class="num">1</span>MISRA C/C++</h2>
-      <p class="lede">C/C++ 在關鍵系統中的安全編碼指引，是 Part 6 對編碼規範要求的具體落地方式。</p>
-      <p>MISRA（Motor Industry Software Reliability Association）制定的編碼指引，目的是限制 C/C++ 語言中容易誤用、行為未定義或可移植性差的語法，提升程式碼的安全性、可靠度與可移植性。雖然最初鎖定汽車產業，現在已被航太、醫療、鐵路等其他關鍵系統產業廣泛採用。實務上會搭配靜態分析工具，在 CI 流程中自動檢查程式碼是否違反 MISRA 規則。</p>
+    <section id="iec61508">
+      <h2 class="step"><span class="num">1</span>IEC 61508 — 功能安全的源頭</h2>
+      <p class="lede">跨產業的功能安全母標準，規範電機／電子／可程式化電子安全相關系統（E/E/PE systems）的通用要求。ISO 26262 就是它在車用領域的產業別調整版<a class="cite" data-src="iec61508_hub"></a>。</p>
+
+      <h3>為什麼車用需要自己的版本</h3>
+      <p>IEC 61508 的設計對象涵蓋核能、製程工業、機械等各種領域，因此寫得相當抽象——它必須同時適用於一座化工廠的緊急停機系統，和一台工具機的安全門連鎖。但汽車有幾個特性讓通用版本不好直接套：產量是百萬台等級而不是幾十套、使用者是未經訓練的一般駕駛而不是受訓過的操作員、而且系統是在無法預測的開放環境中運作。</p>
+      <p>所以車用領域需要一份把這些前提寫進骨子裡的版本，這就是 ISO 26262 的由來<a class="cite" data-src="iso26262_overview"></a>。它承襲 IEC 61508 的核心邏輯（依風險程度決定開發嚴謹度、用安全生命週期貫穿整個流程），但把危害分析改成以駕駛情境為基礎的 HARA、把安全等級改成考慮可控性的 ASIL，並且針對量產車補上了生產、運行、維修、除役的要求<a class="cite" data-src="iso26262_part7"></a>。</p>
+
+      <h3>SIL 與 ASIL：同一個精神，不同的尺</h3>
+      <p>IEC 61508 用的是 <b>SIL</b>（Safety Integrity Level，1 到 4，4 最嚴格）<a class="cite" data-src="iec61508_part1"></a>；ISO 26262 用的是 <b>ASIL</b>（A 到 D，D 最嚴格，另有 QM 表示不需要按本標準管理）。兩者的精神相同——風險越高，開發方法就要越嚴謹——但判定基礎不一樣：SIL 主要看要求的風險降低量（以失效機率的量級來表達），ASIL 則是由 Severity、Exposure、Controllability 三個構面組合判定<a class="cite" data-src="iso26262_part3"></a>。</p>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 不要自己在 SIL 和 ASIL 之間換算</p>
+        <p>「SIL 3 大概等於 ASIL C」這種說法在網路上很常見，但兩者<b>沒有官方的對應關係</b>。它們的判定輸入不同、量化基礎也不同，硬換算會得到錯誤的結論。如果專案同時牽涉兩套標準（例如車用零件用在工業設備上），正確做法是各自依該標準重新分析，而不是查表換算。</p>
+      </div>
+
+      <h3>對你的實際意義</h3>
+      <p>日常寫車用韌體幾乎不會直接翻 IEC 61508。它的價值在兩個時機：一是<b>理解 ISO 26262 為什麼長這樣</b>——很多看起來莫名其妙的要求，回頭看母標準就知道是從哪個通用原則來的；二是<b>換產業的時候</b>，如果你之後接觸工業自動化或醫療設備，會發現心智模型幾乎可以直接搬過去，只是名詞和判定方式換一套。</p>
+    </section>
+
+    <section id="sotif">
+      <h2 class="step"><span class="num">2</span>SOTIF（ISO 21448）— 沒故障也可能不安全</h2>
+      <p class="lede">ISO 26262 處理的是「故障導致失效」的風險。SOTIF 處理的是另一種完全不同的狀況：系統沒有任何零件壞掉、軟體也完全照設計執行，但設計本身在某些情境下就是不夠用<a class="cite" data-src="sotif"></a>。</p>
+
+      <h3>兩種「不安全」的差別</h3>
+      <p>舉個具體的對照。攝影機的影像感測器因為電路老化而輸出錯誤畫素——這是故障，屬於 ISO 26262 的範圍，你要用診斷機制偵測它、進入安全狀態。但如果感測器完全正常，只是在夕陽逆光下對比不足，導致辨識演算法把白色卡車誤判成天空——沒有任何東西「壞掉」，硬體規格內、軟體邏輯也照設計跑，這就是功能不足（functional insufficiency），是 SOTIF 的範圍。</p>
+      <p>第二類風險是<b>可合理預見的誤用</b>（reasonably foreseeable misuse）。駕駛把車道維持輔助當成自動駕駛而放開雙手，系統的設計沒有故障，但人的使用方式超出了設計假設。這同樣屬於 SOTIF 要處理的問題。</p>
+
+      <h3>情境的四個象限</h3>
+      <p>SOTIF 常用一個把情境分成四類的思考框架：已知且安全、已知但不安全、未知且不安全、未知但安全。工程活動的目標是想辦法<b>把「已知但不安全」的情境透過設計改善變成安全，並透過大量的情境分析與測試，把「未知且不安全」的區塊盡量挖出來變成已知</b>。這也解釋了為什麼 ADAS 的驗證要跑那麼多的實車里程與模擬情境——那不是在抓 bug，而是在縮小未知區塊。</p>
+
       <div class="note">
-        <p class="note-title">跟你的日常工作</p>
-        <p>你寫的每一行 C/C++ 程式碼，只要專案有導入 MISRA，靜態分析工具就會依照 MISRA 規則檢查，這是 Part 6 對「編碼指引（coding guidelines）」要求最直接的實踐方式。</p>
+        <p class="note-title">什麼時候會落到你頭上</p>
+        <p>如果你做的是動力、煞車、車身這類功能明確的控制器，SOTIF 的比重通常不高。但只要碰到<b>感知、決策、輔助駕駛</b>相關的功能，SOTIF 就會跟 ISO 26262 一起出現在需求文件裡，而且會帶來一批「情境覆蓋率」性質的驗證需求，跟你熟悉的單元測試覆蓋率是完全不同的東西。</p>
+      </div>
+    </section>
+
+    <section id="cybersecurity">
+      <h2 class="step"><span class="num">3</span>ISO/SAE 21434 — 網路安全工程</h2>
+      <p class="lede">規範車輛電子電機系統整個生命週期的網路安全工程要求，從概念、開發、生產、營運一直到除役<a class="cite" data-src="iso21434"></a>。</p>
+
+      <h3>結構上跟 ISO 26262 很像</h3>
+      <p>如果你已經熟悉 ISO 26262，21434 會意外地好上手，因為它的骨架幾乎是平行的：先定義 item、做一份風險分析（這裡叫 <b>TARA</b>，Threat Analysis and Risk Assessment，對應功能安全的 HARA）、據以訂出網路安全目標與需求、往下分解到設計與實作、再用驗證活動證明達成。差別在於分析的對象——HARA 問「什麼故障會造成傷害」，TARA 問「攻擊者可以從哪裡進來、得手之後能造成多大損害」。</p>
+      <p>另一個明顯差異是<b>時間軸</b>。功能安全的風險在車輛出廠後大致是固定的，但資安風險會持續演化：今天安全的加密強度，五年後可能被攻破。所以 21434 特別強調產品上市之後的持續監控、漏洞管理與事件回應，這部分在功能安全裡沒有對等的要求。</p>
+
+      <h3>韌體工程師會碰到的具體項目</h3>
+      <ul class="plain">
+        <li><b>Secure boot</b>：開機時逐級驗證映像檔簽章，確保跑起來的是原廠韌體。</li>
+        <li><b>簽章驗證的 OTA 更新</b>：更新包要能驗證來源與完整性，而且要防止降級攻擊（把韌體刷回有已知漏洞的舊版）。</li>
+        <li><b>金鑰保管</b>：金鑰要放在受保護的儲存區（例如 HSM 或安全區塊），不能寫死在一般 flash 裡。</li>
+        <li><b>除錯介面管控</b>：量產韌體要關閉或鎖定 JTAG／除錯埠，這件事常常在專案末期才被想起來。</li>
+      </ul>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 安全與資安會互相拉扯</p>
+        <p>最典型的衝突是：資安要求「驗證失敗就不准啟動」，功能安全要求「任何情況下都要能進入安全狀態」。如果 secure boot 驗證失敗就讓 ECU 完全不動作，那在行駛中觸發時反而製造了危險。這類衝突必須在架構階段就一起討論，兩邊的需求要同時放在桌上，不能各做各的再來整合。</p>
+      </div>
+    </section>
+
+    <section id="misra">
+      <h2 class="step"><span class="num">4</span>MISRA C/C++ — 編碼規範的落地</h2>
+      <p class="lede">C/C++ 在關鍵系統中的安全編碼指引，是 Part 6 對「編碼指引」要求最常見的具體落地方式<a class="cite" data-src="misra"></a>。注意它是獨立的產業文件，<b>不是 ISO 26262 的一部分</b>。</p>
+
+      <h3>它在限制什麼</h3>
+      <p>C 語言有大量「編譯得過、但行為不保證」的寫法：未定義行為（undefined behaviour）、由實作決定的行為（implementation-defined）、容易誤讀的隱式型別轉換、指標運算的邊界問題。這些在桌面軟體上頂多是 bug，在安全相關的韌體上可能就是一次無法重現的故障。</p>
+      <p>MISRA 的做法是把這些危險地帶用規則圈起來，讓程式碼停留在語言中行為明確、可被靜態分析工具推理的子集裡。這也解釋了為什麼有些規則看起來很囉唆（例如要求每個 <code>if</code> 都要有大括號、<code>switch</code> 一定要有 <code>default</code>）——它們的目的不是讓程式變漂亮，而是消除歧義與遺漏。</p>
+
+      <h3>規則分類與 deviation 流程</h3>
+      <p>MISRA 的規則有不同的強制程度，大致分成必須遵守、原則上要遵守、以及建議性質三類。重要的是：<b>MISRA 從來不是「一條都不能違反」</b>。它本身就定義了正式的 <b>deviation（偏離）</b>流程——當某條規則在特定情境下不合理或無法遵守時，你可以記錄偏離的理由、影響分析與補償措施，經審查核可後合法地違反該規則。但最高強制等級的規則不允許偏離。</p>
+      <p>實務上這代表：靜態分析報告出現違規不等於程式碼有問題，也不代表可以隨手加個 suppress 註解了事。每一筆違規要嘛修掉，要嘛走 deviation 流程留下紀錄——而那份紀錄之後是會被稽核的。</p>
+
+      <div class="note">
+        <p class="note-title">版本會演進，用前先確認</p>
+        <p>MISRA 的指引會定期改版（C 與 C++ 各自有不同的版本線），而且會發布勘誤與補充文件。專案要用哪一版是專案層級的決定，通常會寫進軟體開發計畫裡；動手前先確認你的靜態分析工具設定的是同一版<a class="cite" data-src="misra_publications"></a>。</p>
       </div>
     </section>
 
     <section id="aspice">
-      <h2 class="step"><span class="num">2</span>Automotive SPICE</h2>
-      <p class="lede">流程能力評估模型，跟 ISO 26262 常被 OEM 同時要求，但關注面向不同。</p>
-      <p>Automotive SPICE（ASPICE）由 VDA QMC 制定，是一套流程參考模型（Process Reference Model）與流程評估模型（Process Assessment Model）的組合，評估的是「開發流程本身做得好不好」（例如需求管理、變更管理、測試流程是否落實），而不是直接評估「產品安不安全」。</p>
-      <p>ISO 26262 關注的是功能安全目標有沒有達成；ASPICE 關注的是流程成熟度。兩者範疇有重疊（例如都重視需求追溯性、變更管理），實務上供應商常需要同時通過 ASPICE 流程能力評估，並滿足 ISO 26262 的安全要求。</p>
-    </section>
+      <h2 class="step"><span class="num">5</span>Automotive SPICE — 流程能力評估</h2>
+      <p class="lede">由 VDA QMC 制定的流程參考模型與流程評估模型，評估的是「你的開發流程做得好不好」，而不是「你的產品安不安全」<a class="cite" data-src="aspice_vda"></a>。</p>
 
-    <section id="risk-extensions">
-      <h2 class="step"><span class="num">3</span>SOTIF（ISO 21448）與 ISO/SAE 21434</h2>
-      <p class="lede">兩份標準涵蓋 ISO 26262 本身不處理的風險類型，近年跟功能安全的工作重疊度越來越高。</p>
+      <h3>它衡量的是流程，不是產品</h3>
+      <p>ASPICE 把開發活動拆成一組流程（涵蓋系統與軟體的需求分析、架構設計、實作、各層級的驗證，以及專案管理、變更管理、品質保證等支援流程），再用<b>能力等級</b>（capability level）評估每個流程被執行得多完整、多受控<a class="cite" data-src="aspice_pam40"></a>。等級由低到高大致是：有沒有做 → 有沒有被管理（有計畫、有追蹤） → 有沒有標準化到組織層級 → 有沒有量化控制 → 有沒有持續改善。OEM 對供應商最常要求的是中間那兩級。</p>
+      <p>關鍵在於：<b>ASPICE 不看你的產品有多安全，只看你的流程有多可靠</b>。一個流程能力很高的團隊，完全可以有紀律地開發出一個 ASIL 判定錯誤的產品；反過來，一個安全論證做得好的團隊也可能流程一團亂。這就是為什麼 OEM 會兩個都要求。</p>
 
-      <h3>SOTIF — 功能不足導致的風險</h3>
-      <p>ISO 26262 處理的是「系統故障（fault）導致失效」的風險；SOTIF（Safety Of The Intended Functionality）處理的是「系統完全沒有故障、行為完全符合設計，但設計本身在某些邊界情境下仍不足以確保安全」的風險，例如感測器在特定光線角度誤判、演算法對未見過的路況判斷錯誤。這對 ADAS、感知演算法特別關鍵。</p>
-
-      <h3>ISO/SAE 21434 — 網路安全風險</h3>
-      <p>規範車輛電子電機系統整個生命週期的網路安全工程要求，涵蓋威脅分析、風險評估、因應措施等。隨著 OTA（Over-The-Air）韌體更新、車聯網功能普及，網路安全與功能安全的工作開始密切交疊——例如韌體更新機制本身要同時滿足「安全（safety）不能因為更新失敗而進入危險狀態」與「資安（security）不能被竄改惡意韌體」兩種要求。</p>
-
-      <div class="note warn">
-        <p class="note-title">⚠ 三者容易混淆但關注面向不同</p>
-        <p>ISO 26262（故障導致的失效）、SOTIF（設計功能不足導致的失效）、ISO/SAE 21434（惡意攻擊導致的風險），三者是互補而非取代關係，一個完整的車用電子系統開發流程通常三者都要考慮。</p>
-      </div>
-    </section>
-
-    <section id="iec61508">
-      <h2 class="step"><span class="num">4</span>IEC 61508</h2>
-      <p class="lede">跨產業的功能安全母標準，ISO 26262 是它在車用領域的產業別調整版。</p>
-      <p>IEC 61508 定義了電機/電子/可程式化電子安全相關系統（E/E/PE systems）的通用功能安全要求，涵蓋核能、製程工業、機械等各種產業，並定義了 SIL（Safety Integrity Level，1～4 級）的概念。ISO 26262 把 IEC 61508 的核心概念調整、擴充成車用電子電機系統專屬的版本，ASIL 的判定邏輯精神即承襲自 SIL。理解 IEC 61508 有助於看懂 ASIL 概念的起源，也方便日後如果接觸跨產業專案時能快速轉換心智模型。</p>
+      <h3>跟 ISO 26262 重疊的地方</h3>
+      <p>兩者確實有大量共同的要求，最明顯的是<b>雙向追溯性</b>——需求到設計、設計到程式碼、程式碼到測試案例，兩套標準都要求能雙向對得起來。變更管理、組態管理、驗證的獨立性也都是共同項目，這些在 ISO 26262 屬於 Part 8 支援流程的範圍<a class="cite" data-src="iso26262_part8"></a>。</p>
+      <p>實務上的好消息是：把追溯性與變更管理做扎實，是同時滿足兩邊要求的最省力路徑。壞消息是，很多團隊會為了兩套評鑑各準備一份文件，最後變成維護兩份會互相矛盾的紀錄。</p>
     </section>
 
     <section id="autosar">
-      <h2 class="step"><span class="num">5</span>AUTOSAR</h2>
-      <p class="lede">車用軟體架構框架，內建的機制能幫助落實 ISO 26262 對軟體安全機制的要求。</p>
-      <p>AUTOSAR（AUTomotive Open System ARchitecture）提供標準化的車用軟體架構，分成 <b>Classic Platform</b>（深嵌入式、硬即時、資源受限的傳統 ECU）與 <b>Adaptive Platform</b>（自動駕駛等需要高效能運算的場景）。AUTOSAR 本身不是安全標準，但它提供的機制——例如 <b>E2E Protection</b>（端到端資料保護，偵測通訊資料遺失、重複、順序錯亂）、記憶體分區（支援不同 ASIL 等級軟體元件之間的隔離）——直接對應 ISO 26262 Part 6、Part 9 對軟體安全機制的要求，是實作層面常會用到的框架。</p>
+      <h2 class="step"><span class="num">6</span>AUTOSAR — 提供機制的平台</h2>
+      <p class="lede">AUTOSAR 是標準化的車用軟體架構，<b>不是安全標準</b>，但它提供的機制正好對應 ISO 26262 對軟體安全機制的要求，是實作層面最常遇到的框架<a class="cite" data-src="autosar"></a>。</p>
+
+      <h3>Classic 與 Adaptive 的分工</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Classic Platform</th><th>Adaptive Platform</th></tr></thead>
+          <tbody>
+            <tr><td><b>典型場景</b></td><td>動力、煞車、車身等傳統 ECU</td><td>自動駕駛、高效能運算</td></tr>
+            <tr><td><b>即時性</b></td><td>硬即時，行為高度靜態可預測</td><td>較動態，服務可在執行期建立連線</td></tr>
+            <tr><td><b>資源</b></td><td>微控制器，記憶體以 KB～MB 計</td><td>較大的處理器與作業系統</td></tr>
+            <tr><td><b>組態</b></td><td>大多在建置期就固定</td><td>保留較多執行期彈性</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>兩者是互補而非取代關係，同一台車上兩種平台同時存在是常態，之間再透過標準化的通訊機制串起來<a class="cite" data-src="autosar_standards"></a>。</p>
+
+      <h3>跟安全直接相關的三個機制</h3>
+      <ul class="plain">
+        <li><b>E2E Protection</b>：在資料本身附上 CRC、sequence counter 等保護欄位，讓接收端自己就能判斷訊息是否遺失、重複、順序錯亂或被竄改。這正是 Part 9 講的資訊交換干擾的標準對策<a class="cite" data-src="iso26262_part9"></a>。</li>
+        <li><b>記憶體分區</b>：讓不同 ASIL 等級的軟體元件跑在受保護的分區裡，是達成 freedom from interference 的主要手段之一。</li>
+        <li><b>時間保護</b>：監控任務的執行時間預算與時間間隔，避免低等級元件把 CPU 時間吃光而影響高等級任務。</li>
+      </ul>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 用了 AUTOSAR ≠ 符合 ISO 26262</p>
+        <p>平台提供的是<b>機制</b>，不是<b>論證</b>。你仍然要自己說明：這些機制被正確設定了（MPU 區段表、E2E 設定檔對不對）、它們涵蓋了你在安全分析中識別出的失效模式、而且你用的那份 BSW／平台實作本身有合適的安全認證或合格證據可以引用<a class="cite" data-src="iso26262_part8"></a>。買了平台不等於買到合規。</p>
+      </div>
+    </section>
+
+    <section id="compare">
+      <h2 class="step">哪份文件回答哪個問題</h2>
+      <p class="lede">遇到問題時最快的判斷方式，是先想清楚你要回答的是哪一類問題。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>文件</th><th>性質</th><th>回答的問題</th><th>對韌體工程師的實際影響</th></tr></thead>
+          <tbody>
+            <tr><td><b>ISO 26262</b></td><td>要求標準</td><td>故障會不會害人？要多嚴謹地開發？</td><td>ASIL、安全機制、驗證強度</td></tr>
+            <tr><td><b>IEC 61508</b></td><td>要求標準（跨產業）</td><td>同上，但不限車用</td><td>理解概念來源；換產業時的心智模型</td></tr>
+            <tr><td><b>ISO 21448（SOTIF）</b></td><td>要求標準</td><td>沒故障但設計不足會不會害人？</td><td>情境覆蓋、感測與演算法的能力邊界</td></tr>
+            <tr><td><b>ISO/SAE 21434</b></td><td>要求標準</td><td>有人蓄意攻擊會怎樣？</td><td>secure boot、簽章更新、金鑰保管</td></tr>
+            <tr><td><b>MISRA C/C++</b></td><td>編碼指引</td><td>這行 C 可不可以這樣寫？</td><td>靜態分析、deviation 紀錄</td></tr>
+            <tr><td><b>Automotive SPICE</b></td><td>評估模型</td><td>你們的開發流程夠不夠成熟？</td><td>追溯性、文件完整度、評鑑準備</td></tr>
+            <tr><td><b>AUTOSAR</b></td><td>軟體平台</td><td>這些機制要怎麼實作？</td><td>E2E、分區、平台 API 與組態</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2 class="step">常見混淆</h2>
+      <p class="lede">這幾個問題幾乎每個剛接觸的人都會問一次。</p>
+
+      <details>
+        <summary>ASPICE 等級越高，產品就越安全嗎？</summary>
+        <p>不是。ASPICE 衡量流程的執行與受控程度，ISO 26262 衡量安全目標有沒有被達成，兩者是不同軸向<a class="cite" data-src="aspice_vda"></a>。流程能力高只代表你有紀律地做事，不保證你對危害的判斷是對的。OEM 兩個都要求，正是因為任一個都無法涵蓋另一個。</p>
+      </details>
+
+      <details>
+        <summary>做了 ISO 26262，還需要 SOTIF 嗎？</summary>
+        <p>看你的功能會不會有「沒故障也不安全」的可能。傳統的控制類功能通常規格明確，SOTIF 比重低；但只要牽涉感知、決策或輔助駕駛，功能不足就是真實存在的風險類型，ISO 26262 本身不處理這一塊<a class="cite" data-src="sotif"></a>。</p>
+      </details>
+
+      <details>
+        <summary>SIL 3 是不是等於 ASIL C？</summary>
+        <p>沒有官方對應關係，不要自己換算。兩者的判定輸入與量化基礎都不同：SIL 主要看要求的風險降低量，ASIL 由 Severity、Exposure、Controllability 判定<a class="cite" data-src="iso26262_part3"></a>。同時牽涉兩套標準時，各自重新分析才是正確做法。</p>
+      </details>
+
+      <details>
+        <summary>MISRA 是不是一條規則都不能違反？</summary>
+        <p>不是。MISRA 本身定義了正式的 deviation 流程：記錄理由、影響分析與補償措施，經審查核可後可以合法偏離——但最高強制等級的規則除外。重點是要留下可被稽核的紀錄，而不是在程式碼裡隨手 suppress<a class="cite" data-src="misra"></a>。</p>
+      </details>
+
+      <details>
+        <summary>用了 AUTOSAR，是不是就自動符合 ISO 26262 了？</summary>
+        <p>不會。AUTOSAR 提供機制，合規需要的是論證。你仍然要證明這些機制被正確設定、涵蓋了你識別出的失效模式，而且所使用的平台實作本身有可引用的合格證據<a class="cite" data-src="iso26262_part6"></a>。</p>
+      </details>
+
+      <details>
+        <summary>資安要求跟功能安全要求打架時，聽誰的？</summary>
+        <p>不能單獨聽任一邊，要在架構階段一起解。典型例子是 secure boot 驗證失敗：完全不啟動滿足了資安，卻可能讓行駛中的車輛失去必要功能。正確做法是設計一個同時滿足兩邊的降級行為——既不執行未經驗證的程式碼，也仍然能進入可控的安全狀態<a class="cite" data-src="iso21434"></a>。</p>
+      </details>
+    </section>
+
+    <section id="sources">
+      <h2 class="step">本章出處</h2>
+      <p class="lede">本章引用的標準與規範，點擊可直接前往官方頁面。</p>
+      <div id="chapterSources"></div>
     </section>
 
     <section id="quiz">
@@ -162,6 +306,7 @@
 <script src="/assets/js/toc-scrollspy.js"></script>
 <script src="/assets/js/quiz-engine.js"></script>
 <script src="/assets/data/circle-07.quiz.js"></script>
+<script src="/assets/js/citations.js"></script>
 <script>
   window.ISO26262Quiz.mount('quizContainer', 'circle-07-related-standards', window.ISO26262_QUIZ_CIRCLE_07);
 </script>

@@ -29,8 +29,10 @@
       <li><a href="#chain"><span class="n">1</span><span>需求分解鏈</span></a></li>
       <li><a href="#item-definition"><span class="n">2</span><span>Item Definition</span></a></li>
       <li><a href="#tsc"><span class="n">3</span><span>Technical Safety Concept</span></a></li>
-      <li><a href="#design-integration"><span class="n">4</span><span>系統設計與整合測試</span></a></li>
-      <li><a href="#validation"><span class="n">5</span><span>Safety Validation</span></a></li>
+      <li><a href="#hsi"><span class="n">4</span><span>硬體軟體介面（HSI）</span></a></li>
+      <li><a href="#design-integration"><span class="n">5</span><span>系統設計與整合測試</span></a></li>
+      <li><a href="#validation"><span class="n">6</span><span>Safety Validation</span></a></li>
+      <li><a href="#sources"><span class="n">－</span><span>本章出處</span></a></li>
       <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
     </ol>
   </nav>
@@ -38,7 +40,18 @@
   <main>
     <section id="overview">
       <h2 class="step">為什麼軟體工程師要懂這個</h2>
-      <p class="lede">你平常收到的「軟體安全需求」不是憑空冒出來的。Part 4 講的是系統層的開發流程，重點是搞懂這條需求鏈，之後拿到一條需求，你會知道它對應到哪個 safety goal、為什麼存在、可以往上追溯給誰確認。</p>
+      <p class="lede">你平常收到的「軟體安全需求」不是憑空冒出來的。Part 4 講的是系統層的開發流程<a class="cite" data-src="iso26262_part4"></a>，重點是搞懂這條需求鏈，之後拿到一條需求，你會知道它對應到哪個 safety goal、為什麼存在、可以往上追溯給誰確認。</p>
+
+      <p>這件事的實際價值，在你覺得某條需求「怪怪的」時才會顯現。收到一條「偵測到感測器失效後 20 ms 內必須關閉輸出」的需求，如果你只知道要照做，那你唯一能做的就是照做；但如果你知道這個 20 ms 是從故障容忍時間區間（fault tolerant time interval）推導出來的、而那個區間又來自 HARA 對某個危害情境的分析，你就有能力判斷：這個數字有沒有算錯、你的實作路徑上還有哪些延遲沒被計入、以及當你發現 20 ms 做不到時，該找誰談什麼。</p>
+
+      <h3>你會在哪些場合真的用到</h3>
+      <ul class="plain">
+        <li><b>需求審查</b>：判斷一條 SSR 是否真的能滿足它上游的 TSR，而不只是文字上看起來相關。</li>
+        <li><b>爭議發生時</b>：當軟體被要求承擔一個其實該由硬體處理的安全機制，你需要能指出這是 allocation 的問題，回到系統層討論。</li>
+        <li><b>變更影響分析</b>：改動一段程式碼時，往上追溯到 safety goal 才知道影響範圍到哪<a class="cite" data-src="iso26262_part8"></a>。</li>
+        <li><b>時間預算談判</b>：你的軟體只分到整條反應鏈的一小段時間，知道整條鏈怎麼切的，才談得下去。</li>
+      </ul>
+
       <div class="note">
         <p class="note-title">跟第 6 圈（Part 6）的關係</p>
         <p>Part 6 講你怎麼把 <b>Software Safety Requirement（SSR）</b>實作成程式碼；Part 4 講 SSR 之前發生了什麼事。兩者合起來才是完整的一條鏈。</p>
@@ -47,7 +60,7 @@
 
     <section id="chain">
       <h2 class="step"><span class="num">1</span>需求分解鏈</h2>
-      <p class="lede">從 Safety Goal 到你手上的軟體需求，中間會經過幾層分解與分配（allocation）。</p>
+      <p class="lede">從 Safety Goal 到你手上的軟體需求，中間會經過幾層分解與分配（allocation）<a class="cite" data-src="iso26262_part4"></a>。</p>
       <figure>
         <svg viewBox="0 0 880 230" role="img" aria-label="需求分解鏈：Safety Goal 分解為 Functional Safety Requirement，再分解為 Technical Safety Requirement，分配到硬體與軟體，軟體端最終成為 Software Safety Requirement">
           <defs>
@@ -88,21 +101,56 @@
         </svg>
         <figcaption><b>Software Safety Requirement 不是第一手需求。</b>它是 Technical Safety Requirement 分配到軟體之後的產物，往上兩層才會碰到 Safety Goal 本身。拿到一條需求時，值得養成習慣去追溯它對應的 TSR 與 Safety Goal。</figcaption>
       </figure>
+
+      <h3>每一層在回答不同的問題</h3>
+      <p>這條鏈之所以要分這麼多層，是因為每一層問的問題性質不同，混在一起會寫出既不像目標也不像規格的東西：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>層級</th><th>回答的問題</th><th>典型長相</th></tr></thead>
+          <tbody>
+            <tr><td><b>Safety Goal</b></td><td>要避免什麼危害？（不談任何實作）</td><td>「應避免非駕駛意圖的驅動扭矩輸出」，帶一個 ASIL 等級</td></tr>
+            <tr><td><b>FSR</b></td><td>系統在功能層面要做到什麼才能達成上述目標？</td><td>「偵測到扭矩指令異常時，應在容忍時間內移除驅動扭矩」</td></tr>
+            <tr><td><b>TSR</b></td><td>用什麼技術方案實現？涉及哪些架構元素？</td><td>「以獨立的第二路徑重算扭矩上限，兩者差異超過門檻時觸發切斷」</td></tr>
+            <tr><td><b>SSR / HSR</b></td><td>分配給軟體／硬體的那一部分具體要做什麼？</td><td>「監控模組應每 5 ms 比對兩路徑扭矩值，連續 3 次超限即置位故障旗標」</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>越往下越具體、越接近可實作與可測試；越往上越抽象、越接近「為什麼」。你手上的 SSR 是這條鏈的末端，它的正當性完全來自上游——所以當 SSR 看起來不合理時，問題通常不在 SSR 本身，而在某一層的分解出了差錯。</p>
+
+      <h3>Allocation 不是純技術決定</h3>
+      <p>同一條 TSR 要交給硬體還是軟體實現，往往有多種可行解，而選擇會受成本、既有平台、供應商能力影響。舉例來說「偵測輸出級短路」可以用專用的電流檢測 IC（硬體），也可以用 ADC 取樣加軟體演算法判斷（軟體），兩者的 ASIL 分攤與失效率貢獻完全不同<a class="cite" data-src="iso26262_part5"></a>。</p>
+      <p>對軟體團隊的意義是：<b>allocation 決定了你要背多少安全責任</b>。當某個安全機制被分配到軟體，那段程式碼就要按對應的 ASIL 開發——需求要更嚴謹、覆蓋率門檻更高、審查更正式<a class="cite" data-src="iso26262_part6"></a>。這是為什麼系統架構會議值得軟體代表出席：那裡在決定的不只是技術方案，還有你接下來幾個月的工作量。</p>
     </section>
 
     <section id="item-definition">
       <h2 class="step"><span class="num">2</span>Item Definition</h2>
-      <p class="lede">整個安全生命週期的起點：先把「item」的邊界畫清楚——它是什麼、有哪些功能、跟車上其他系統的介面是什麼。</p>
-      <p>Item definition 確認的範圍，會直接影響 Part 3 做 HARA（Hazard Analysis and Risk Assessment）時的假設是否成立。如果之後 item 的邊界或功能有變動，代表前面的 HARA 與 Safety Goal 可能需要重新檢視，這就是 ISO 26262 講的 tailoring／impact analysis 的起點。</p>
+      <p class="lede">整個安全生命週期的起點：先把「item」的邊界畫清楚——它是什麼、有哪些功能、跟車上其他系統的介面是什麼<a class="cite" data-src="iso26262_part4"></a>。</p>
+
+      <p>Item definition 確認的範圍，會直接影響 Part 3 做 HARA（Hazard Analysis and Risk Assessment）時的假設是否成立<a class="cite" data-src="iso26262_part3"></a>。如果之後 item 的邊界或功能有變動，代表前面的 HARA 與 Safety Goal 可能需要重新檢視，這就是 ISO 26262 講的 tailoring／impact analysis 的起點。</p>
+
+      <h3>邊界畫不清楚，後面全部歪掉</h3>
+      <p>Item definition 是少數「做壞了會污染整條鏈」的活動。因為 HARA 只會分析邊界內的功能與邊界上的介面，任何被漏在邊界外的東西，就不會被辨識成危害，也就不會產生對應的 safety goal——而沒有 safety goal 的風險，之後所有的驗證與確效都不會去檢查它。</p>
+      <p>常見的翻車情境有幾種：把某個「輔助功能」排除在 item 之外，結果它其實會影響主功能的輸出；只定義了正常操作模式，沒定義啟動、關機、診斷、跛行（limp-home）等狀態，於是這些狀態下的危害從未被分析；或是介面只列了訊號名稱，沒說明時序與失效行為，導致對方系統送來異常值時該怎麼辦沒人想過。</p>
+
+      <h3>Item definition 應該包含什麼</h3>
+      <ul class="plain">
+        <li><b>功能與目的</b>：這個 item 在車輛層級提供什麼功能，包含各種操作模式與狀態。</li>
+        <li><b>系統邊界</b>：哪些元件屬於 item、哪些屬於外部；責任分界在哪。</li>
+        <li><b>介面</b>：與其他系統、與駕駛、與環境的互動，包含訊號、時序與預期的異常行為。</li>
+        <li><b>環境與運作條件假設</b>：溫度、電壓範圍、預期的使用方式與可預見的誤用。</li>
+        <li><b>法規與已知限制</b>：適用的法規要求，以及沿用既有平台帶來的既定條件。</li>
+      </ul>
+
       <div class="note warn">
         <p class="note-title">常見誤解</p>
         <p>Item definition 不是系統規格書的全部內容，而是聚焦在「安全分析需要知道的邊界資訊」——功能、介面、運作環境假設。</p>
+        <p>另一個常見誤解是把它當成一次性的文件。實際上它是整條鏈的假設基礎，每次功能擴充、每次沿用到新車型，都要回頭確認這些假設是否還成立。</p>
       </div>
     </section>
 
     <section id="tsc">
       <h2 class="step"><span class="num">3</span>Technical Safety Concept</h2>
-      <p class="lede">把 Functional Safety Concept（Part 3 產出，講「系統要做到什麼」）具體化成 Technical Safety Requirement（講「系統架構要怎麼實現」）。</p>
+      <p class="lede">把 Functional Safety Concept（Part 3 產出，講「系統要做到什麼」）具體化成 Technical Safety Requirement（講「系統架構要怎麼實現」）<a class="cite" data-src="iso26262_part4"></a>。</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>階段</th><th>回答的問題</th><th>產出</th></tr></thead>
@@ -113,16 +161,53 @@
           </tbody>
         </table>
       </div>
+
+      <h3>安全狀態與故障容忍時間</h3>
+      <p>技術安全概念裡有兩個概念會直接變成你程式碼裡的數字。第一是 <b>safe state（安全狀態）</b>：偵測到故障之後，系統要進入的那個不會造成不合理風險的狀態。它未必是「關掉」——對電動助力轉向來說，突然斷電比維持有限助力更危險，所以安全狀態可能是「以降級模式繼續運作並警示駕駛」。</p>
+      <p>第二是<b>故障反應時間的預算</b>。從故障發生、被偵測到、到系統確實進入安全狀態，整段時間必須短於危害真正造成傷害所需的時間。這個總預算會被切成好幾段分給不同元件：感測器取樣週期、通訊延遲、你的偵測演算法需要幾個週期確認、致動器的反應時間。<b>你的軟體只拿到其中一段</b>，而且通常沒有你想像的寬裕。</p>
+      <p>這解釋了一個常見困惑：為什麼需求會寫「連續 3 次超限才判定故障」而不是一次就跳？因為要在「抗雜訊誤判」與「反應要夠快」之間取平衡，而次數乘上週期就必須塞進分配到的時間預算裡。改變濾波次數不是自由選擇，它會動到安全論證。</p>
+
+      <h3>TSR 應該具備的性質</h3>
+      <p>TSR 是給系統與硬體、軟體團隊共同看的契約，寫得好不好直接決定下游的品質。它應該指出安全機制要偵測什麼故障、偵測到之後要做什麼、要在多久之內完成、以及故障後系統維持在哪個狀態。反過來說，它不該指定實作細節到綁死軟體架構的程度——那是 Part 6 階段的事<a class="cite" data-src="iso26262_part6"></a>。</p>
+    </section>
+
+    <section id="hsi">
+      <h2 class="step"><span class="num">4</span>硬體軟體介面（HSI）</h2>
+      <p class="lede">HSI（hardware-software interface）是系統層交給軟體團隊的那份契約，明確寫下硬體提供什麼、軟體要負責什麼<a class="cite" data-src="iso26262_part4"></a>。對韌體工程師來說，這是 Part 4 的產出物裡最直接影響日常工作的一份。</p>
+
+      <p>它的存在是為了消除一個經典的責任真空：硬體團隊以為某個故障會由軟體偵測，軟體團隊以為硬體已經處理掉了，結果兩邊都沒做。HSI 就是把這類假設攤開來寫清楚的地方。</p>
+
+      <h3>HSI 通常會定義什麼</h3>
+      <ul class="plain">
+        <li><b>硬體資源的分配與存取方式</b>：哪些週邊歸誰用、暫存器如何存取、共用資源怎麼仲裁。</li>
+        <li><b>硬體提供的安全機制</b>：例如 ECC、lockstep 比對、看門狗、電壓監控——以及這些機制觸發時，軟體會收到什麼（中斷？旗標？）、必須做出什麼反應<a class="cite" data-src="iso26262_part5"></a>。</li>
+        <li><b>要由軟體實作的診斷</b>：哪些故障硬體不管，得靠韌體做合理性檢查或週期性自我測試。</li>
+        <li><b>時序約束</b>：中斷延遲上限、診斷執行週期、故障反應時間分配給軟體的那一段。</li>
+        <li><b>初始化與關機順序</b>：開機自我測試要做什麼、關機時要保存什麼。</li>
+        <li><b>訊號的有效範圍與異常表徵</b>：某個 ADC 通道正常值域是多少、超出時代表什麼故障。</li>
+      </ul>
+
+      <div class="note good">
+        <p class="note-title">✓ 拿到 HSI 時值得先問的三個問題</p>
+        <p><b>一、</b>每一個硬體安全機制觸發時，我的程式碼具體要做什麼？有沒有哪一項只寫了「硬體會偵測」卻沒說軟體要如何反應？</p>
+        <p><b>二、</b>分配給軟體的診斷，執行週期與時間預算是多少？在最壞情況下我的排程塞得下嗎？</p>
+        <p><b>三、</b>有沒有哪個故障模式是兩邊文件都沒提到的？那通常就是真空地帶。</p>
+      </div>
     </section>
 
     <section id="design-integration">
-      <h2 class="step"><span class="num">4</span>系統設計與整合測試</h2>
+      <h2 class="step"><span class="num">5</span>系統設計與整合測試</h2>
       <p class="lede">TSR 分配到硬體與軟體之後，各自依 Part 5 / Part 6 開發，最後要合起來驗證。</p>
       <ol class="steps">
         <li>System design：把 TSR 落實成系統架構，決定哪些功能由硬體實現、哪些由軟體實現。</li>
-        <li>依 Part 9 的安全分析方法（下一圈會講）檢查架構是否滿足 ASIL 要求，包含需不需要做 ASIL decomposition。</li>
+        <li>依 Part 9 的安全分析方法（下一圈會講）檢查架構是否滿足 ASIL 要求，包含需不需要做 ASIL decomposition<a class="cite" data-src="iso26262_part9"></a>。</li>
         <li>System integration and testing：硬體與軟體整合後，驗證系統行為是否符合 Technical Safety Requirement。</li>
       </ol>
+
+      <h3>整合是分層進行的</h3>
+      <p>「系統整合測試」不是等所有東西做完才一次兜起來測。整合有層次：軟體單元先整合成軟體元件、軟體整合到目標硬體形成 ECU、多個 ECU 再整合成車輛層級的系統。每一層都有對應的測試，而且每一層驗證的對象不同——ECU 層驗的是這顆 ECU 是否滿足分配給它的 TSR，車輛層才看得到跨系統的互動。</p>
+      <p>對安全機制而言，整合階段有個特別重要的活動：<b>故障注入測試</b>。安全機制的正確性沒辦法靠正常情境測出來，因為正常情況下它根本不會被觸發。你必須主動製造故障——拔掉感測器、短路訊號線、在記憶體裡翻位元、讓某個任務故意超時——然後確認系統真的偵測到並進入安全狀態，而且是在時間預算內。</p>
+
       <div class="note">
         <p class="note-title">Verification 不等於 Validation</p>
         <p>系統整合測試做的是 <b>verification</b>——確認產出符合上一層的規格（TSR）。真正確認「這台車在實際使用情境下安全」的是下一節的 <b>validation</b>，兩者是不同層次的確認。</p>
@@ -130,9 +215,28 @@
     </section>
 
     <section id="validation">
-      <h2 class="step"><span class="num">5</span>Safety Validation</h2>
-      <p class="lede">Safety validation 是在 item／車輛層級，用真實或具代表性的使用情境，確認最初的 Safety Goal 真的有被達成——不是只在文件層級打勾。</p>
+      <h2 class="step"><span class="num">6</span>Safety Validation</h2>
+      <p class="lede">Safety validation 是在 item／車輛層級，用真實或具代表性的使用情境，確認最初的 Safety Goal 真的有被達成——不是只在文件層級打勾<a class="cite" data-src="iso26262_part4"></a>。</p>
+
       <p>這跟軟體單元測試、整合測試（verification，確認「做得對不對」）不同：validation 問的是「做的東西對不對」，也就是最初 HARA 辨識出的風險，在真實情境下是否真的被控制住了。</p>
+
+      <h3>為什麼規格全部通過還可能不安全</h3>
+      <p>Verification 的參照基準是規格，所以它只能證明「實作與規格一致」。如果規格本身就寫錯了——某個危害沒被辨識到、時間預算算太寬鬆、對駕駛可控性的假設過度樂觀——那麼每一層的 verification 都會漂亮通過，而產品仍然不安全。Validation 存在的理由就是回頭檢查這個假設鏈本身。</p>
+      <p>典型的做法包括在真實車輛上跑代表性的使用情境與極端情境、注入故障後觀察整車行為、以及檢視當初 HARA 對可控性（controllability）的假設是否經得起實際駕駛者的反應。這也是為什麼 validation 通常需要真車與試車場，不是實驗室裡能完成的事。</p>
+
+      <h3>軟體工程師在 validation 階段的角色</h3>
+      <p>你多半不會親自開車做確效，但兩件事會找上你：一是<b>提供可觀測性</b>——validation 需要知道故障有沒有被偵測到、系統在哪個時間點切換到安全狀態，這些都得靠韌體的診斷輸出與紀錄機制；二是<b>解釋異常</b>——當試車發現某個情境下反應比預期慢，追查通常會回到你的排程、濾波次數或通訊延遲上。</p>
+
+      <div class="note">
+        <p class="note-title">Part 4 之後還有 Part 7</p>
+        <p>確效通過、產品上市之後，安全生命週期並沒有結束。量產、維修、以及日後的退役都還有對應的要求，屬於 Part 7 的範圍<a class="cite" data-src="iso26262_part7"></a>。對韌體來說，最常碰到的是售後更新與維修診斷——這些行為同樣可能影響安全論證，不能當成一般的軟體更新處理。</p>
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2 class="step">本章出處</h2>
+      <p class="lede">本章引用的標準與規範，點擊可直接前往官方頁面。</p>
+      <div id="chapterSources"></div>
     </section>
 
     <section id="quiz">
@@ -153,6 +257,7 @@
 <script src="/assets/js/toc-scrollspy.js"></script>
 <script src="/assets/js/quiz-engine.js"></script>
 <script src="/assets/data/circle-04.quiz.js"></script>
+<script src="/assets/js/citations.js"></script>
 <script>
   window.ISO26262Quiz.mount('quizContainer', 'circle-04-system-level-part4', window.ISO26262_QUIZ_CIRCLE_04);
 </script>

@@ -16,7 +16,7 @@
   <div class="masthead-inner">
     <p class="eyebrow">第 6 圈・概念與管理</p>
     <h1>概念階段與管理</h1>
-    <p class="standfirst">理解你收到的軟體需求「等級」是怎麼被判定出來的，以及功能安全在組織層面是怎麼被管理、稽核的。</p>
+    <p class="standfirst">你手上那條軟體需求的 ASIL 等級是怎麼被決定的，以及那些 review 與簽核到底在證明什麼。</p>
   </div>
 </header>
 
@@ -28,7 +28,10 @@
       <li><a href="#overview"><span class="n">－</span><span>總覽</span></a></li>
       <li><a href="#concept-phase"><span class="n">1</span><span>Part 3・概念階段</span></a></li>
       <li><a href="#asil"><span class="n">2</span><span>ASIL 判定邏輯</span></a></li>
-      <li><a href="#management"><span class="n">3</span><span>Part 2・管理</span></a></li>
+      <li><a href="#safe-state"><span class="n">3</span><span>安全目標與安全狀態</span></a></li>
+      <li><a href="#management"><span class="n">4</span><span>Part 2・管理</span></a></li>
+      <li><a href="#confirmation"><span class="n">5</span><span>三種確認措施的差別</span></a></li>
+      <li><a href="#sources"><span class="n">－</span><span>本章出處</span></a></li>
       <li><a href="#quiz"><span class="n">？</span><span>測驗</span></a></li>
     </ol>
   </nav>
@@ -36,7 +39,13 @@
   <main>
     <section id="overview">
       <h2 class="step">總覽</h2>
-      <p class="lede">這一圈把「軟體需求最初是怎麼來的」與「組織要怎麼證明整個安全流程有被落實」講清楚，分別對應 <b>Part 3（Concept phase）</b>與 <b>Part 2（Management of functional safety）</b>。</p>
+      <p class="lede">這一圈把「軟體需求最初是怎麼來的」與「組織要怎麼證明整個安全流程有被落實」講清楚，分別對應 <b>Part 3（Concept phase）</b><a class="cite" data-src="iso26262_part3"></a>與 <b>Part 2（Management of functional safety）</b><a class="cite" data-src="iso26262_part2"></a>。</p>
+
+      <p>這兩個 Part 離你的日常最遠，卻決定了你日常的兩件大事：<b>你要花多少力氣</b>（ASIL 等級由 Part 3 判定），以及<b>你要留下多少證據</b>（由 Part 2 的安全計畫與 safety case 規定）。很多工程師覺得流程很煩，是因為只看到要求本身、沒看到要求的來源；把這一圈讀完，那些 review 與簽核至少會變成有道理的煩。</p>
+
+      <h3>一條需求的完整身世</h3>
+      <p>你收到的每一條 Software Safety Requirement，理論上都能一路往回追：軟體需求來自技術安全需求（Part 4），技術安全需求來自功能安全需求，功能安全需求來自某一個安全目標，而安全目標來自 HARA 找出的某一個危害事件。這條鏈是整份標準追溯性的骨幹——當你想問「這個奇怪的需求到底為什麼存在」，往回追就會找到答案。</p>
+
       <div class="note">
         <p class="note-title">跟軟韌體工程師的關係</p>
         <p>你平常收到的 Software Safety Requirement，最源頭就是這裡的 <b>HARA</b> 與 <b>Safety Goal</b>；而你被要求配合的 review、稽核、文件簽署，背後邏輯就是這裡的 <b>Safety Case</b> 與 <b>Functional Safety Assessment</b>。理解這兩者，能幫助你判斷「這個需求為什麼存在」「這份文件到底在證明什麼」。</p>
@@ -45,16 +54,22 @@
 
     <section id="concept-phase">
       <h2 class="step"><span class="num">1</span>Part 3・概念階段</h2>
-      <p class="lede">概念階段是整條需求鏈的起點，產出的 Safety Goal 會一路分解到你手上的軟體需求。</p>
+      <p class="lede">概念階段是整條需求鏈的起點，產出的 Safety Goal 會一路分解到你手上的軟體需求<a class="cite" data-src="iso26262_part3"></a>。這個階段還沒有任何實作決策——談的是「這個東西壞掉會怎樣」，而不是「這個東西要怎麼做」。</p>
 
       <h3>Item Definition（項目定義）</h3>
-      <p>先界定「這個 item（例如一套電子煞車輔助系統）」的功能範圍、邊界、與周邊系統的互動介面。範圍界定不清楚，後面的危害分析就會跟著失準。</p>
+      <p>先界定「這個 item（例如一套電子煞車輔助系統）」的功能範圍、邊界、與周邊系統的互動介面。這一步聽起來像行政手續，實際上決定了後面所有分析的品質：<b>邊界劃在哪裡，就決定了哪些失效算「我的問題」、哪些算「別人的問題」</b>。</p>
+      <p>邊界沒定清楚的典型後果是分析出現漏洞——兩個團隊各自假設某個介面的異常由對方處理，結果雙方都沒做。所以項目定義要寫明的不只是功能，還包括：這個 item 依賴哪些外部訊號、對外輸出什麼、在哪些操作條件下運作、以及與駕駛人如何互動。</p>
 
       <h3>HARA（Hazard Analysis and Risk Assessment）</h3>
-      <p>針對 item 在各種操作情境（例如高速行駛、濕滑路面、壅擠市區）下，系統性地找出可能發生的<b>危害事件（hazardous event）</b>，也就是「什麼樣的失效行為，在什麼情境下，會對人造成傷害」。每一個危害事件都會依風險程度被評定一個 ASIL（見下一節）。</p>
+      <p>HARA 是概念階段的核心活動，做的事情可以拆成三個動作。</p>
+      <p>第一步是<b>找出失效行為</b>：假設這個 item 的功能出現異常行為（malfunctioning behaviour），會是什麼樣子？注意這裡不問「為什麼會壞」——不去追是哪顆電容燒了還是哪行程式寫錯，只問「表現出來的異常行為是什麼」。以電子煞車輔助為例：不該作動時作動、該作動時沒作動、作動力道過大、作動力道不足、作動時機延遲。</p>
+      <p>第二步是<b>把失效行為放進操作情境</b>：同一個失效行為，在不同情境下的危險程度天差地遠。「煞車突然自行作動」發生在停車場低速移動時可能只是嚇一跳，發生在高速公路上就可能造成追撞。所以 HARA 會系統性地列舉操作情境——車速區間、路面狀況、交通密度、駕駛人狀態——把失效行為與情境交叉組合，每一個組合就是一個<b>危害事件（hazardous event）</b>。</p>
+      <p>第三步是<b>對每個危害事件評定風險</b>，也就是下一節要講的 S、E、C 三個維度。</p>
 
-      <h3>Safety Goal（安全目標）</h3>
-      <p>針對每一個經過風險評估的危害事件，訂出一個對應的 Safety Goal——用來避免或降低該危害事件風險的頂層安全需求，並繼承該危害事件評定出的 ASIL。之後 Part 4（系統層）會把 Safety Goal 分解成 Technical Safety Requirement，再到 Part 6（軟體層）分解成你熟悉的 Software Safety Requirement。</p>
+      <div class="note">
+        <p class="note-title">為什麼 HARA 不問「為什麼會壞」</p>
+        <p>因為概念階段還沒有設計，根本無從問起。這個順序是刻意的：先確定「什麼結果不可接受」，才根據結果的嚴重程度去決定「要花多少力氣避免它」。如果反過來先看設計再想風險，就會不自覺地被既有設計綁住，只想得到那些已經想到的失效。</p>
+      </div>
 
       <figure>
         <svg viewBox="0 0 880 210" role="img" aria-label="概念階段流程：項目定義接著進行危害分析與風險評估，產出安全目標，並判定 ASIL 等級">
@@ -87,13 +102,37 @@
           </g>
           <text x="440" y="180" text-anchor="middle" font-family="Noto Sans TC, sans-serif" font-size="12" fill="currentColor" opacity=".75">每個危害事件都會各自走完這條鏈，得到自己的 Safety Goal 與 ASIL</text>
         </svg>
-        <figcaption><b>這條鏈是整份標準需求追溯性的起點。</b>之後 Part 4、Part 6 的每一條軟體需求，理論上都能往回追溯到某一個 Safety Goal，再往回追溯到某一個 HARA 找出的危害事件。</figcaption>
+        <figcaption><b>這條鏈是整份標準需求追溯性的起點。</b>之後 Part 4、Part 6 的每一條軟體需求，理論上都能往回追溯到某一個 Safety Goal，再往回追溯到某一個 HARA 找出的危害事件。注意 ASIL 是掛在「危害事件」上的，不是掛在零件或程式模組上——同一個 item 可能同時有 ASIL D 與 QM 的安全目標。</figcaption>
       </figure>
     </section>
 
     <section id="asil">
       <h2 class="step"><span class="num">2</span>ASIL 判定邏輯</h2>
-      <p class="lede">ASIL（Automotive Safety Integrity Level）由三個維度組合評定：<b>Severity</b>（傷害嚴重度）、<b>Exposure</b>（情境發生機率）、<b>Controllability</b>（駕駛人或相關人員能否自行避免傷害）。三者皆偏高，風險越高，ASIL 等級也越高（QM → A → B → C → D，D 最嚴格）。</p>
+      <p class="lede">ASIL（Automotive Safety Integrity Level）由三個維度組合評定：<b>Severity</b>（傷害嚴重度）、<b>Exposure</b>（情境發生機率）、<b>Controllability</b>（駕駛人或相關人員能否自行避免傷害）<a class="cite" data-src="iso26262_part3"></a>。三者皆偏高，風險越高，ASIL 等級也越高（QM → A → B → C → D，D 最嚴格）。</p>
+
+      <h3>三個維度各自在問什麼</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>維度</th><th>問題</th><th>評估時的重點</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Severity</b><br><span class="src">傷害嚴重度</span></td>
+              <td>如果這個危害事件真的發生，人會受到多嚴重的傷害？</td>
+              <td>評的是<b>對人的傷害</b>，不是財產損失或商譽。車子燒掉但沒人受傷，在這個維度上不算嚴重。</td>
+            </tr>
+            <tr>
+              <td><b>Exposure</b><br><span class="src">暴露度</span></td>
+              <td>車輛處在「這個失效會造成危害」的那個操作情境的機率有多高？</td>
+              <td>評的是<b>情境</b>出現的頻率，不是失效本身的機率。高速直行是天天發生的情境；車輛以特定角度停在陡坡上則罕見得多。</td>
+            </tr>
+            <tr>
+              <td><b>Controllability</b><br><span class="src">可控性</span></td>
+              <td>危害發生時，一般駕駛人（或其他用路人）能不能靠自己的反應避免傷害？</td>
+              <td>假設的是<b>一般駕駛</b>，不是專業試車手。而且要考慮反應時間是否足夠——理論上做得到、但只有 0.2 秒可以反應，實務上就是不可控。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div class="note warn">
         <p class="note-title">⚠ 下表僅為概念示意，不是標準原文</p>
@@ -111,34 +150,102 @@
         </table>
       </div>
 
+      <h3>QM 不等於「沒有要求」</h3>
+      <p>評定結果落在 QM（Quality Management）代表這個危害事件的風險低到不需要套用 ISO 26262 的安全流程，但它<b>不是</b>「這段程式可以隨便寫」的許可。QM 元件仍然要遵守公司正常的品質流程，而且更重要的是：一旦 QM 元件與高 ASIL 元件共用硬體，就必須證明它不會干擾對方——這正是 freedom from interference 要處理的問題<a class="cite" data-src="iso26262_part9"></a>。很多人以為 QM 就是「不用管」，結果讓一個沒人看管的模組跟 ASIL D 任務跑在同一顆晶片上。</p>
+
       <div class="note">
         <p class="note-title">為什麼軟韌體工程師要在意 ASIL</p>
-        <p>ASIL 等級會直接決定你要花多少力氣：需要多嚴謹的需求追溯、要不要做 MC/DC 覆蓋率、要不要做 ASIL decomposition、程式碼審查要多獨立……等級越高，流程要求越重。</p>
+        <p>ASIL 等級會直接決定你要花多少力氣：需求要寫到多可驗證、架構要多可分析、單元測試要做到什麼結構覆蓋率、程式碼審查要多獨立、要不要做 ASIL decomposition。等級越高，方法學要求越重<a class="cite" data-src="iso26262_part6"></a>。這也是為什麼架構會議上「這條需求到底是 B 還是 D」會吵那麼久——那是在決定後面幾個月的工作量。</p>
+      </div>
+    </section>
+
+    <section id="safe-state">
+      <h2 class="step"><span class="num">3</span>安全目標與安全狀態</h2>
+      <p class="lede">HARA 的產出是 Safety Goal，而 Safety Goal 通常會連帶指定一個 <b>safe state（安全狀態）</b>。這兩個概念是概念階段留給你的最直接遺產——你的診斷程式碼偵測到異常之後要把系統帶去哪裡，答案就寫在這裡。</p>
+
+      <h3>Safety Goal（安全目標）</h3>
+      <p>針對每一個經過風險評估的危害事件，訂出一個對應的 Safety Goal——用來避免或降低該危害事件風險的頂層安全需求，並繼承該危害事件評定出的 ASIL。安全目標的寫法刻意保持在「要達成什麼」的層次，不涉及「怎麼做」，例如「避免非駕駛人意圖的煞車作動」，而不會寫成「用兩顆感測器交叉比對」。</p>
+      <p>實作方式留到後面的階段決定：Part 4 把安全目標展開成功能安全需求與技術安全需求<a class="cite" data-src="iso26262_part4"></a>，再往下才輪到 Part 6 的軟體安全需求。</p>
+
+      <h3>Safe State（安全狀態）</h3>
+      <p>安全狀態是「當系統無法繼續正常提供功能時，要退到哪個已知安全的狀態」。這個概念對韌體工程師特別重要，因為<b>你的錯誤處理常式最終要把系統帶到的，就是這個狀態</b>。</p>
+      <p>安全狀態長什麼樣子高度取決於功能本身。對某些系統，關閉輸出就是安全的（例如停止提供電動輔助轉向的扭力，退回純機械轉向）；但對另一些系統，直接關閉反而是最危險的做法。判斷原則是問：<b>「停止提供功能」與「繼續提供可能錯誤的功能」，哪一個比較不危險？</b></p>
+      <p>還有一種常見的設計是<b>降級運作（degraded operation）</b>：不是全有全無，而是退到一個功能受限但仍安全的模式，同時明確告知駕駛人。這在無法瞬間停止的系統上很常見——需要給駕駛人時間接手，這段過渡期本身也要被設計進安全概念裡。</p>
+
+      <div class="note good">
+        <p class="note-title">✓ 這一節跟你寫的程式碼的關係</p>
+        <p>當你在寫「偵測到 ECC 不可修正錯誤時該做什麼」的處理常式時，你不該自己發明反應方式。正確的做法是回頭查這條路徑對應的安全目標與它指定的安全狀態——那是概念階段就決定好的，你的工作是實作它，不是重新定義它。</p>
       </div>
     </section>
 
     <section id="management">
-      <h2 class="step"><span class="num">3</span>Part 2・管理</h2>
-      <p class="lede">Part 2 關注組織層面：怎麼規劃、怎麼證明、怎麼確保執行的人有能力做到。</p>
+      <h2 class="step"><span class="num">4</span>Part 2・管理</h2>
+      <p class="lede">Part 2 關注組織層面：怎麼規劃、怎麼證明、怎麼確保執行的人有能力做到<a class="cite" data-src="iso26262_part2"></a>。它回答一個容易被忽略的問題——為什麼功能安全需要制度，而不是靠幾個資深工程師特別小心就好。</p>
+
+      <h3>為什麼要有組織層級的流程</h3>
+      <p>答案很現實：<b>安全不能依賴特定人員的個人素質</b>。人會離職、會換專案、會在交期壓力下做出妥協；靠英雄主義撐起來的安全，在那個人不在的時候就消失了。制度化的意義是讓安全結果可預期、可重複、也可被外部檢驗——出了事故要能說明當初依據什麼判斷做了什麼決定，而不是「我記得好像有討論過」。</p>
 
       <h3>Safety Plan（安全計畫）</h3>
-      <p>專案開始時訂出的計畫文件，說明整個安全生命週期要做哪些活動、由誰負責、用什麼里程碑管控進度。</p>
+      <p>專案開始時訂出的計畫文件，說明整個安全生命週期要做哪些活動、由誰負責、用什麼里程碑管控進度，以及各項活動的預期產出。它是後續一切安全活動的依據——包含要做哪些確認措施、由誰執行、獨立性要求到什麼程度。</p>
 
       <h3>Safety Case（安全論證）</h3>
-      <p>把安全生命週期中蒐集到的證據（分析結果、驗證測試報告、審查紀錄）結構化地彙整起來，論證「Safety Goal 確實已經被達成」，供內部管理或外部稽核查閱。</p>
-
-      <h3>Functional Safety Assessment（功能安全評估）</h3>
-      <p>依 ASIL 等級要求不同程度的獨立性，對整個安全生命週期的流程執行與證據做評估，判斷安全目標是否真的達成——範疇比單純的 code review 廣得多。</p>
+      <p>Safety case 常被誤解成「一份文件」，實際上它是<b>一組結構化的論證</b>：把安全生命週期中蒐集到的證據（危害分析結果、驗證測試報告、審查紀錄、工具鑑定證明等）組織起來，說明「安全目標確實已經被達成」。</p>
+      <p>它的核心是論證的<b>邏輯結構</b>而不是資料的堆疊——要能清楚說明「因為做了 A、B、C，所以可以宣稱安全目標 X 已達成」，並且每一項主張都有證據支撐。這也是為什麼你被要求留下測試報告與審查紀錄：那些東西最後會變成 safety case 裡的證據節點。追溯性斷掉的地方，就是安全論證出現破口的地方。</p>
 
       <h3>Competence Management 與 Safety Culture</h3>
-      <p>確保執行安全活動的人員具備足夠能力（Competence Management），並讓組織形成鼓勵誠實回報問題、不隱瞞風險的氛圍（Safety Culture）。再完整的流程文件，若執行者能力不足或組織氛圍不支持誠實揭露，安全目標仍可能落空。</p>
+      <p>確保執行安全活動的人員具備足夠能力（Competence Management），並讓組織形成鼓勵誠實回報問題、不隱瞞風險的氛圍（Safety Culture）。這兩項常被當成空話，但它們針對的是很具體的失效模式：<b>能力不足的人會漏掉該發現的問題；氛圍不好的組織會讓發現問題的人選擇閉嘴</b>。</p>
+      <p>判斷一個組織的安全文化，看的不是牆上的標語，而是實際行為：有人在交期前一週提出安全疑慮時會發生什麼事？如果答案是「會被認真評估、必要時延期」，那是好的文化；如果是「會被視為找麻煩」，那再完整的流程文件都補不回來。</p>
 
       <div class="tabmap">
-        <div><b>Safety Plan</b><span>專案開始時：這個專案要做哪些安全活動</span></div>
-        <div><b>Safety Case</b><span>持續累積：證據夠不夠證明安全目標達成</span></div>
-        <div><b>Functional Safety Assessment</b><span>里程碑/交付前：獨立評估流程與證據</span></div>
+        <div><b>Safety Plan</b><span>專案開始時：這個專案要做哪些安全活動、誰負責、何時完成</span></div>
+        <div><b>Safety Case</b><span>持續累積：證據與論證夠不夠證明安全目標達成</span></div>
+        <div><b>Confirmation Measures</b><span>里程碑/交付前：由不同獨立程度的人檢查流程與證據</span></div>
         <div><b>Competence / Culture</b><span>貫穿全程：人有沒有能力、敢不敢誠實回報</span></div>
       </div>
+    </section>
+
+    <section id="confirmation">
+      <h2 class="step"><span class="num">5</span>三種確認措施的差別</h2>
+      <p class="lede">Part 2 規定的確認措施（confirmation measures）有三種，名字很像但目的與獨立性要求各不相同<a class="cite" data-src="iso26262_part2"></a>。搞清楚差別，你才知道會議邀請上那個名詞代表什麼場合、以及該準備什麼。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>措施</th><th>在檢查什麼</th><th>對象</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Confirmation Review</b><br><span class="src">確認審查</span></td>
+              <td>特定的安全相關工作產出，內容是否符合標準的要求</td>
+              <td>個別文件或產出物，例如 HARA 報告、安全計畫、safety case</td>
+            </tr>
+            <tr>
+              <td><b>Functional Safety Audit</b><br><span class="src">功能安全稽核</span></td>
+              <td><b>流程</b>有沒有被照著執行——實際做法與安全計畫寫的是否一致</td>
+              <td>過程與活動，而不是最終產品</td>
+            </tr>
+            <tr>
+              <td><b>Functional Safety Assessment</b><br><span class="src">功能安全評鑑</span></td>
+              <td><b>結果</b>——綜合所有證據，判斷這個 item 是否真的達成了功能安全</td>
+              <td>整體，涵蓋流程、產出與論證</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>三者的關係可以這樣理解：<b>稽核問「你有沒有照規矩做」，評鑑問「做出來的東西到底安不安全」，而確認審查則是逐份檢查關鍵文件本身夠不夠格</b>。一個專案可能流程執行得無懈可擊（稽核過關），但最終仍被評鑑判定安全論證有缺口——照著做不等於做對。</p>
+
+      <h3>獨立性要求會隨 ASIL 提高</h3>
+      <p>這幾種措施都要求執行者具備一定的獨立性，而且<b>ASIL 越高，要求的獨立程度越高</b>。低等級時可能同團隊的其他人即可，高等級時就會要求來自不同團隊、甚至不同部門或外部的人員。理由很直接：檢查自己做的東西，人天生會看不見自己的盲點；獨立性是用組織結構來彌補這個人性弱點。</p>
+
+      <div class="note warn">
+        <p class="note-title">⚠ 這些都不是 code review 的同義詞</p>
+        <p>一般的 code review 檢查的是程式碼本身的正確性與可讀性，屬於開發活動的一部分。Part 2 的確認措施範疇大得多——它們檢查的是整個安全生命週期的流程與證據，包含需求追溯是否完整、分析是否充分、驗證是否涵蓋所有安全需求、工具是否經過鑑定<a class="cite" data-src="iso26262_part8"></a>。你的 code review 紀錄會成為它們的檢查對象之一，但兩者不是同一件事。</p>
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2 class="step">本章出處</h2>
+      <p class="lede">本章引用的標準與規範，點擊可直接前往官方頁面。</p>
+      <div id="chapterSources"></div>
     </section>
 
     <section id="quiz">
@@ -159,6 +266,7 @@
 <script src="/assets/js/toc-scrollspy.js"></script>
 <script src="/assets/js/quiz-engine.js"></script>
 <script src="/assets/data/circle-06.quiz.js"></script>
+<script src="/assets/js/citations.js"></script>
 <script>
   window.ISO26262Quiz.mount('quizContainer', 'circle-06-concept-management-part2-3', window.ISO26262_QUIZ_CIRCLE_06);
 </script>
