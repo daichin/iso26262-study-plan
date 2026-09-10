@@ -357,7 +357,13 @@ sudo systemctl restart iso26262</div>
         <p>代表 3000 埠已經有程式在聽了。先查是誰：</p>
         <p><code>sudo ss -ltnp | grep :3000</code></p>
         <p><b>最常見的原因是網站已經在跑了。</b>如果你已經做完步驟 6，systemd 就會一直把它拉著，這時候不需要也不應該再手動 <code>npm start</code>——直接開瀏覽器就好。用 <code>systemctl status iso26262</code> 確認，看到 <code>active (running)</code> 就是正常的。</p>
-        <p>如果佔用的是<b>別的程式</b>（Grafana 預設也用 3000），那就改用其他埠：編輯 <code>.env</code> 把 <code>PORT</code> 改成例如 <code>3100</code>，然後 <code>sudo systemctl restart iso26262</code>，網址也跟著換成 <code>:3100</code>。防火牆若開過 3000，記得改開新的埠。</p>
+        <p>如果佔用的是<b>別的程式</b>（Grafana 預設就是 3000），那就改用其他埠。先確認要換的埠沒人用——下面這行<b>沒有輸出</b>才代表可用：</p>
+        <p><code>sudo ss -ltnp | grep :3200</code></p>
+        <p>確認可用後，編輯 <code>.env</code> 把 <code>PORT</code> 改成 <code>3200</code>，再 <code>sudo systemctl restart iso26262</code>（還沒設 systemd 的話就直接 <code>npm start</code>），網址跟著換成 <code>:3200</code>。防火牆若開過 3000，記得改開新的埠。</p>
+        <div class="note warn">
+          <p class="note-title">⚠ 別挑 3100</p>
+          <p>Grafana Loki 預設用 3100。如果這台跑的是 Grafana 全套，挑 3100 只會換一個對象再撞一次。</p>
+        </div>
       </details>
 
       <details>
