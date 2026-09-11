@@ -14,6 +14,15 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 app.use(express.json());
 
+// 存活檢查。刻意放在 session middleware 之前：這樣它不會碰到 connect-pg-simple
+// 的資料庫 store，Neon 睡著或掛掉時一樣答得出來——回報的就是「網站程序還活著」。
+// 若要連資料庫一起檢查，那是另一個端點，不要混進這裡。
+// no-store 是必要的：少了它，中間的快取可能在服務已經掛掉時仍回一個舊的 200。
+app.get('/healthz', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(200).end();
+});
+
 app.use(
   session({
     store: new pgSession({ pool, tableName: 'session', createTableIfMissing: true }),
